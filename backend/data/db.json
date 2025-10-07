@@ -1,0 +1,25 @@
+{
+  "users": [],
+  "assignments": [
+    {
+      "id": 1,
+      "slug": "fizzbuzz",
+      "title": "FizzBuzz",
+      "language": "python"
+    },
+    {
+      "id": 2,
+      "slug": "csv-stats",
+      "title": "CSV Statistics",
+      "language": "python"
+    },
+    {
+      "id": 3,
+      "slug": "vector2d",
+      "title": "2D Vector Operations",
+      "language": "python"
+    }
+  ],
+  "submissions": [],
+  "results": []
+}

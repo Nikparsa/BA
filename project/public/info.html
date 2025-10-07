@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Environmental Tips for Sustainable Living">
+    
+    <title>Environmental Tips | Evergreen</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+    
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2ecc71;
+            --accent-color: #3498db;
+            --text-color: #2c3e50;
+            --background-color: #f0f5f9;
+            --card-background: #ffffff;
+            --shadow-color: rgba(26, 95, 122, 0.1);
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --error-color: #e74c3c;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Enhanced Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23FFFFFF" fill-opacity="0.05" d="M45,-78C59.9,-70.1,74.2,-60.7,83.6,-47.1C93,-33.5,97.4,-16.8,94.7,-1.6C92,13.6,82.1,27.1,72.7,40.7C63.3,54.2,54.4,67.8,41.6,74.9C28.8,82,14.4,82.6,-0.7,83.8C-15.8,85,-31.6,86.8,-45.8,81.2C-60,75.6,-72.6,62.6,-79.8,47.1C-87,31.6,-88.8,15.8,-87.8,0.6C-86.8,-14.7,-83,-29.3,-75.8,-42.3C-68.6,-55.3,-58,-66.6,-44.7,-75.1C-31.4,-83.6,-15.7,-89.3,0.3,-89.8C16.3,-90.3,32.6,-85.6,45,-78Z" transform="translate(100 100)"/></svg>') center/cover;
+            opacity: 0.1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Enhanced Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: -2rem auto 2rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .tip-card {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .tip-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-color);
+        }
+
+        .tip-card h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .category {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .description {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .impact {
+            color: var(--success-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .impact::before {
+            content: '🌱';
+        }
+
+        .tip-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .importance {
+            color: var(--warning-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .implementation {
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            background: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .error {
+            background: #fef2f2;
+            color: var(--error-color);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 1rem 0;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 2rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+                margin-top: -1rem;
+            }
+
+            .tips-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .tip-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="first.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1><i class="fas fa-leaf"></i> Environmental Tips</h1>
+        <p>Simple actions, significant impact</p>
+    </header>
+
+    <main class="main-content">
+        <section class="tips-section">
+            <div id="tips-container" class="tips-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading environmental tips...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        async function loadTips() {
+            const container = document.getElementById('tips-container');
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/tips');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const tips = await response.json();
+                container.innerHTML = '';
+                
+                tips.forEach(tip => {
+                    container.innerHTML += `
+                        <article class="tip-card">
+                            <h3>${tip.title}</h3>
+                            <div class="category">${tip.category}</div>
+                            <p class="description">${tip.description}</p>
+                            <p class="impact">${tip.impact}</p>
+                            <div class="tip-footer">
+                                <span class="importance">
+                                    <i class="fas fa-signal"></i>
+                                    Priority: ${tip.importance}
+                                </span>
+                                <span class="implementation">
+                                    <i class="fas ${tip.easyToImplement ? 'fa-check-circle' : 'fa-clock'}"></i>
+                                    ${tip.easyToImplement ? 'Easy to implement' : 'Requires planning'}
+                                </span>
+                            </div>
+                        </article>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading tips:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Unable to load environmental tips</p>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('load', loadTips);
+    </script>
+</body>
+</html>

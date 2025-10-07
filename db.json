@@ -1,0 +1,95 @@
+{
+    "tips": [
+        {
+            "id": 1,
+            "title": "Recycle paper, plastic, and glass properly.",
+            "category": "Recycling",
+            "description": "Sort your waste into appropriate recycling bins. Clean containers before recycling and flatten cardboard boxes.",
+            "importance": "high",
+            "impact": "Reduces landfill waste and saves resources",
+            "easyToImplement": true
+        },
+        {
+            "id": 2,
+            "title": "Avoid single-use plastics whenever possible.",
+            "category": "Waste Reduction",
+            "description": "Choose reusable alternatives like cloth bags, metal straws, and refillable containers.",
+            "importance": "high",
+            "impact": "Reduces plastic pollution and carbon footprint",
+            "easyToImplement": true
+        },
+        {
+            "id": 3,
+            "title": "Use compost bins for organic waste.",
+            "category": "Waste Management",
+            "description": "Collect food scraps, coffee grounds, and yard waste for composting to create natural fertilizer.",
+            "importance": "medium",
+            "impact": "Reduces methane emissions from landfills",
+            "easyToImplement": true
+        },
+        {
+            "id": 4,
+            "title": "Turn off lights when leaving a room.",
+            "category": "Energy Saving",
+            "description": "Make it a habit to switch off lights in unoccupied rooms to conserve electricity.",
+            "importance": "medium",
+            "impact": "Reduces energy consumption and costs",
+            "easyToImplement": true
+        },
+        {
+            "id": 5,
+            "title": "Use reusable water bottles.",
+            "category": "Waste Reduction",
+            "description": "Invest in a durable water bottle instead of buying disposable plastic bottles.",
+            "importance": "high",
+            "impact": "Reduces plastic waste and saves money",
+            "easyToImplement": true
+        },
+        {
+            "id": 6,
+            "title": "Print double-sided.",
+            "category": "Resource Conservation",
+            "description": "Set your printer to double-sided printing by default to reduce paper consumption.",
+            "importance": "medium",
+            "impact": "Saves paper and reduces deforestation",
+            "easyToImplement": true
+        },
+        {
+            "id": 7,
+            "title": "Use natural light when possible.",
+            "category": "Energy Saving",
+            "description": "Position workspaces near windows and utilize natural light instead of artificial lighting.",
+            "importance": "medium",
+            "impact": "Reduces energy consumption and improves well-being",
+            "easyToImplement": true
+        },
+        {
+            "id": 8,
+            "title": "Properly dispose of electronic waste.",
+            "category": "E-Waste",
+            "description": "Take electronics to certified recycling centers instead of throwing them in regular trash.",
+            "importance": "high",
+            "impact": "Prevents toxic materials from entering landfills",
+            "easyToImplement": false
+        },
+        {
+            "id": 9,
+            "title": "Use eco-friendly cleaning products.",
+            "category": "Sustainable Products",
+            "description": "Choose cleaning products that are biodegradable and environmentally certified.",
+            "importance": "medium",
+            "impact": "Reduces water pollution and chemical exposure",
+            "easyToImplement": true
+        },
+        {
+            "id": 10,
+            "title": "Keep electronics unplugged when not in use.",
+            "category": "Energy Saving",
+            "description": "Unplug devices and chargers when not in use to prevent phantom energy consumption.",
+            "importance": "low",
+            "impact": "Reduces unnecessary power consumption",
+            "easyToImplement": true
+        }
+    ]
+}
+  

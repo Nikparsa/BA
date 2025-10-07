@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a5f7a">
+    <meta name="description" content="Evergreen Daily Environmental Challenge">
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+    
+    <title>Evergreen - Daily Challenge</title>
+    
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #2ecc71;
+            --error-color: #e74c3c;
+            --success-color: #27ae60;
+            --background-color: #f0f5f9;
+            --text-color: #2c3e50;
+            --shadow-color: rgba(26, 95, 122, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .challenge-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transition: var(--transition);
+        }
+
+        .challenge-image:hover {
+            transform: scale(1.02);
+        }
+
+        .challenge-box {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            letter-spacing: 3px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .input-section {
+            margin: 2rem 0;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .input-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .feedback {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .correct {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .incorrect {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .quiz-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #eee;
+        }
+
+        .quiz-section h3 {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .radio-group label:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(26, 95, 122, 0.05);
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .challenge-box {
+                font-size: 1.2rem;
+            }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            color: var(--secondary-color);
+        }
+
+        .completion-badge {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .completion-tracker {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+        }
+
+        .progress-container {
+            background: #e0e0e0;
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: all 0.5s ease-in-out;
+        }
+
+        .progress-text {
+            color: var(--text-color);
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .challenges-status {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .challenge-item {
+            padding: 0.8rem;
+            border-radius: 8px;
+            background: #f5f5f5;
+            transition: all 0.3s ease;
+        }
+
+        .challenge-item.completed {
+            background: #e8f5e9;
+            color: #2ecc71;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="first.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        
+        <div class="header">
+            <h1>Evergreen</h1>
+            <p>Today's Environmental Challenge</p>
+        </div>
+
+        <img class="challenge-image" src="img/2png.png" alt="Recycling Challenge" loading="lazy">
+        
+        <div class="challenge-box">R_c_cl_ng</div>
+        
+        <div class="input-section">
+            <input type="text" id="inputField" class="input-box" placeholder="Enter your answer here...">
+            <button class="btn" id="submitBtn">
+                <i class="fas fa-check"></i> Submit Answer
+            </button>
+            <div class="feedback correct" id="correctFeedback">
+                <i class="fas fa-check-circle"></i> Excellent! You're making a difference!
+            </div>
+            <div class="feedback incorrect" id="incorrectFeedback">
+                <i class="fas fa-info-circle"></i> Let's learn more about environmental protection!
+            </div>
+        </div>
+
+        <div class="quiz-section">
+            <form id="pollutionForm">
+                <h3>Environmental Knowledge Check</h3>
+                <p>Which of these practices best reduces plastic pollution?</p>
+                
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="pollution" value="reuse">
+                        Reusing and repurposing plastic items
+                    </label>
+                    <label>
+                        <input type="radio" name="pollution" value="burn">
+                        Disposing of plastic through burning
+                    </label>
+                </div>
+                
+                <div class="feedback correct" id="correctFeedbackPollution">
+                    <i class="fas fa-star"></i> Great choice! Reusing helps reduce waste.
+                </div>
+                <div class="feedback incorrect" id="incorrectFeedbackPollution">
+                    <i class="fas fa-exclamation-circle"></i> Consider the environmental impact of your choice.
+                </div>
+            </form>
+        </div>
+
+        <div class="completion-tracker">
+            <h3>Challenge Progress</h3>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="progress-text">Start the Challenges!</div>
+            <div class="challenges-status">
+                <div class="challenge-item" id="wordStatus">Recycling Challenge: Not attempted yet</div>
+                <div class="challenge-item" id="pollutionStatus">Plastic Pollution Challenge: Not attempted yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize challenge state management
+        const challengeState = {
+            saveCompletion: function(challengeType, answer) {
+                const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '{}');
+                
+                completedChallenges[challengeType] = {
+                    completed: true,
+                    answer: answer,
+                    timestamp: new Date().toISOString()
+                };
+                
+                localStorage.setItem('completedChallenges', JSON.stringify(completedChallenges));
+                this.updateUI(challengeType);
+                updateProgress();
+            },
+
+            checkCompletion: function(challengeType) {
+                const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '{}');
+                return completedChallenges[challengeType]?.completed || false;
+            },
+
+            updateUI: function(challengeType) {
+                const isCompleted = this.checkCompletion(challengeType);
+                if (isCompleted) {
+                    // Add completion indicator
+                    const completionBadge = document.createElement('div');
+                    completionBadge.className = 'completion-badge';
+                    completionBadge.innerHTML = '<i class="fas fa-check-circle"></i> Completed!';
+                    
+                    // Find the relevant challenge section and add the badge
+                    const challengeSection = document.querySelector(`[data-challenge="${challengeType}"]`);
+                    if (challengeSection && !challengeSection.querySelector('.completion-badge')) {
+                        challengeSection.appendChild(completionBadge);
+                    }
+                }
+            }
+        };
+
+        // Modify your existing submit button functionality
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const inputValue = document.getElementById('inputField').value.trim().toLowerCase();
+            const correctWord = "recycling";
+            
+            document.getElementById('correctFeedback').style.display = 'none';
+            document.getElementById('incorrectFeedback').style.display = 'none';
+            
+            if (inputValue === correctWord) {
+                document.getElementById('correctFeedback').style.display = 'block';
+                challengeState.saveCompletion('wordChallenge', inputValue);
+                updateProgress();
+            } else {
+                document.getElementById('incorrectFeedback').style.display = 'block';
+            }
+        });
+
+        // Modify your existing pollution form handler
+        document.getElementById("pollutionForm").addEventListener("change", function() {
+            const reuseChecked = document.querySelector("input[name='pollution'][value='reuse']").checked;
+            const burnChecked = document.querySelector("input[name='pollution'][value='burn']").checked;
+            
+            if (reuseChecked && !burnChecked) {
+                document.getElementById("correctFeedbackPollution").style.display = "block";
+                document.getElementById("incorrectFeedbackPollution").style.display = "none";
+                challengeState.saveCompletion('pollutionChallenge', 'reuse');
+                updateProgress();
+            } else {
+                document.getElementById("correctFeedbackPollution").style.display = "none";
+                document.getElementById("incorrectFeedbackPollution").style.display = "block";
+            }
+        });
+
+        // Add keyboard support for submit
+        document.getElementById('inputField').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('submitBtn').click();
+            }
+        });
+
+        // Check for completed challenges on page load
+        window.addEventListener('load', function() {
+            updateProgress();
+        });
+
+        // Add completion tracking to the page
+        const completionTracker = document.createElement('div');
+        completionTracker.className = 'completion-tracker';
+        completionTracker.innerHTML = `
+            
+        `;
+        document.querySelector('.container').prepend(completionTracker);
+
+        // Enhanced progress tracking
+        function updateProgress() {
+            const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '{}');
+            const totalChallenges = 2;
+            const completedCount = Object.keys(completedChallenges).length;
+            const progressPercentage = (completedCount / totalChallenges) * 100;
+            
+            // Update progress bar and text
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            const wordStatus = document.getElementById('wordStatus');
+            const pollutionStatus = document.getElementById('pollutionStatus');
+            
+            // Check specific answers
+            if (completedChallenges.wordChallenge?.answer === 'recycling') {
+                wordStatus.innerHTML = 'Recycling Challenge: ✅ Correct!';
+                wordStatus.classList.add('completed');
+            }
+            
+            if (completedChallenges.pollutionChallenge?.answer === 'reuse') {
+                pollutionStatus.innerHTML = 'Plastic Pollution Challenge: ✅ Correct!';
+                pollutionStatus.classList.add('completed');
+            }
+            
+            // Update progress bar
+            if (progressBar && progressText) {
+                progressBar.style.width = `${progressPercentage}%`;
+                progressText.textContent = `${completedCount}/${totalChallenges} Challenges Completed`;
+                
+                // Change color based on completion
+                if (progressPercentage === 100) {
+                    progressBar.style.background = 'linear-gradient(90deg, #2ecc71, #27ae60)';
+                    progressText.style.color = '#2ecc71';
+                    progressText.textContent = 'All Challenges Completed! 🎉';
+                } else if (progressPercentage === 50) {
+                    progressBar.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
+                }
+            }
+        }
+
+        // Add these styles
+        const additionalStyles = `
+            .completion-tracker {
+                background: white;
+                padding: 1.5rem;
+                border-radius: 15px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                margin: 2rem 0;
+            }
+
+            .completion-tracker h3 {
+                color: var(--primary-color);
+                margin-bottom: 1rem;
+                font-size: 1.2rem;
+                text-align: center;
+            }
+
+            .progress-container {
+                background: #e0e0e0;
+                height: 12px;
+                border-radius: 10px;
+                overflow: hidden;
+                margin-bottom: 1rem;
+            }
+
+            .progress-bar {
+                height: 100%;
+                width: 0;
+                background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+                transition: all 0.5s ease-in-out;
+            }
+
+            .progress-text {
+                color: var(--text-color);
+                font-size: 1rem;
+                text-align: center;
+                margin-bottom: 1rem;
+                font-weight: 500;
+            }
+
+            .challenges-status {
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .challenge-item {
+                padding: 0.8rem;
+                border-radius: 8px;
+                background: #f5f5f5;
+                transition: all 0.3s ease;
+                font-size: 0.95rem;
+            }
+
+            .challenge-item.completed {
+                background: #e8f5e9;
+                color: #2ecc71;
+                font-weight: 500;
+            }
+        `;
+
+        // Add the new styles
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+
+        // Add reset functionality (optional)
+        function resetProgress() {
+            localStorage.removeItem('completedChallenges');
+            updateProgress();
+            location.reload(); // Refresh the page to reset UI
+        }
+
+        // Clear any existing progress when page loads
+        window.addEventListener('load', function() {
+            localStorage.removeItem('completedChallenges');
+            updateProgress();
+        });
+
+        function updateProgress() {
+            const completedChallenges = JSON.parse(localStorage.getItem('completedChallenges') || '{}');
+            const totalChallenges = 2;
+            
+            // Check if both challenges are completed with correct answers
+            const isWordCorrect = completedChallenges.wordChallenge?.answer === 'recycling';
+            const isPollutionCorrect = completedChallenges.pollutionChallenge?.answer === 'reuse';
+            const completedCount = (isWordCorrect ? 1 : 0) + (isPollutionCorrect ? 1 : 0);
+            const progressPercentage = (completedCount / totalChallenges) * 100;
+            
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            const wordStatus = document.getElementById('wordStatus');
+            const pollutionStatus = document.getElementById('pollutionStatus');
+            
+            // Set initial status
+            wordStatus.innerHTML = 'Recycling Challenge: Not attempted yet';
+            wordStatus.classList.remove('completed');
+            pollutionStatus.innerHTML = 'Plastic Pollution Challenge: Not attempted yet';
+            pollutionStatus.classList.remove('completed');
+            
+            // Update based on completed challenges
+            if (isWordCorrect) {
+                wordStatus.innerHTML = 'Recycling Challenge: ✅ Correct!';
+                wordStatus.classList.add('completed');
+            }
+            
+            if (isPollutionCorrect) {
+                pollutionStatus.innerHTML = 'Plastic Pollution Challenge: ✅ Correct!';
+                pollutionStatus.classList.add('completed');
+            }
+            
+            // Update progress display
+            if (progressBar && progressText) {
+                progressBar.style.width = `${progressPercentage}%`;
+                
+                if (completedCount === 0) {
+                    progressText.textContent = 'Start the Challenges!';
+                    progressText.style.color = 'var(--text-color)';
+                } else if (isWordCorrect && isPollutionCorrect) {
+                    progressBar.style.background = 'linear-gradient(90deg, #2ecc71, #27ae60)';
+                    progressText.style.color = '#2ecc71';
+                    progressText.innerHTML = 'All Challenges Completed! 🎉';
+                } else {
+                    progressBar.style.background = 'linear-gradient(90deg, #3498db, #2980b9)';
+                    progressText.style.color = 'var(--text-color)';
+                    progressText.textContent = `${completedCount}/${totalChallenges} Challenges Completed`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
