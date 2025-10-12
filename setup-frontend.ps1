@@ -46,3 +46,6 @@ Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "1. Start the backend: cd backend && npm start" -ForegroundColor White
 Write-Host "2. Start the runner: cd runner && python run.py" -ForegroundColor White
 Write-Host "3. Open http://localhost:3000 in your browser" -ForegroundColor White
+
+
+

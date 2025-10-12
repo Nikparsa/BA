@@ -1,5 +1,18 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": 1,
+      "email": "test@fh.com",
+      "password": "123456%AA",
+      "role": "student"
+    },
+    {
+      "id": 2,
+      "email": "test1@fh.com",
+      "password": "123456%AA",
+      "role": "student"
+    }
+  ],
   "assignments": [
     {
       "id": 1,

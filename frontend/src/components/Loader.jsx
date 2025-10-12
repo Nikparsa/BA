@@ -14,3 +14,6 @@ export function Loader({ size = 'medium', text = 'Loading...' }) {
     </div>
   )
 }
+
+
+

@@ -177,3 +177,6 @@ By choosing virtual visits over physical travel, **Art Voyage** helps reduce:
 - Improved accessibility features for diverse users
 >>>>>>> bd76620c9598169a33740e287ffa5db65c8b634d
 >>>>>>> 37cd21578c9840ec48b1ce5bbe0fa412b5a405f4
+
+
+

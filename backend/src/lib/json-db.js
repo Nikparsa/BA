@@ -248,7 +248,30 @@ export const db = {
         return { changes: 0 };
       },
       get: (...params) => {
-        return this.run(...params);
+        // Parse SQL and execute appropriate operation
+        const sqlLower = sql.toLowerCase().trim();
+        
+        if (sqlLower.includes('select') && sqlLower.includes('from users') && sqlLower.includes('where')) {
+          const email = params[0];
+          const password = params[1];
+          const user = db.getUserByEmail(email);
+          if (user && user.password === password) {
+            return user;
+          }
+          return null;
+        }
+        
+        if (sqlLower.includes('select') && sqlLower.includes('from submissions') && sqlLower.includes('where id')) {
+          const id = params[0];
+          return db.getSubmissionById(id);
+        }
+        
+        if (sqlLower.includes('select') && sqlLower.includes('from results') && sqlLower.includes('where submissionid')) {
+          const submissionId = params[0];
+          return db.getResultBySubmissionId(submissionId);
+        }
+        
+        return null;
       },
       all: () => {
         const sqlLower = sql.toLowerCase().trim();
