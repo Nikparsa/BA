@@ -2,7 +2,6 @@ import importlib.util
 import sys
 from pathlib import Path
 
-
 def load_solution():
     # Expect solution file named solution.py at workdir root after unzip
     sol_path = Path('solution.py')
@@ -13,7 +12,6 @@ def load_solution():
     spec.loader.exec_module(mod)
     return mod
 
-
 def test_basic():
     s = load_solution()
     assert s.fizzbuzz(1) == '1'
@@ -21,20 +19,13 @@ def test_basic():
     assert s.fizzbuzz(5) == 'Buzz'
     assert s.fizzbuzz(15) == 'FizzBuzz'
 
-
 def test_edges():
     s = load_solution()
     assert s.fizzbuzz(0) == '0'
     assert s.fizzbuzz(-3) == 'Fizz'
 
-
-
-
-
-
-
-
-
-
-
-
+def test_range():
+    s = load_solution()
+    expected = ['1', '2', 'Fizz', '4', 'Buzz', 'Fizz', '7', '8', 'Fizz', 'Buzz', '11', 'Fizz', '13', '14', 'FizzBuzz']
+    actual = [s.fizzbuzz(i) for i in range(1, 16)]
+    assert actual == expected

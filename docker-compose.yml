@@ -12,7 +12,7 @@ services:
       - RESULTS_DIR=/data/results
       - TASKS_DIR=/tasks
     volumes:
-      - ./data:/data
+      - ./backend/data:/data
       - ./tasks:/tasks:ro
     ports:
       - "3000:3000"
@@ -28,18 +28,16 @@ services:
       - SUBMISSIONS_DIR=/data/submissions
       - RESULTS_DIR=/data/results
       - TASKS_DIR=/tasks
+      - SUPPORTED_LANGUAGES=python
     volumes:
-      - ./data:/data
+      - ./backend/data:/data
       - ./tasks:/tasks:ro
     ports:
       - "5001:5001"
 
-  # Frontend placeholder (to be implemented later)
   frontend:
-    image: nginx:alpine
+    build: ./frontend
     container_name: aca-frontend
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
     ports:
       - "5173:80"
     depends_on:
@@ -48,5 +46,3 @@ services:
 networks:
   default:
     name: aca-net
-
-
