@@ -36,3 +36,10 @@ def test_empty_data():
     assert s.calculate_mean(data) == 0
     assert s.calculate_median(data) == 0
     assert s.calculate_std(data) == 0
+
+
+
+
+
+
+

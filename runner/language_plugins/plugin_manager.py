@@ -167,3 +167,10 @@ class PluginManager:
 
 # Global plugin manager instance
 plugin_manager = PluginManager()
+
+
+
+
+
+
+

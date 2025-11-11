@@ -186,3 +186,10 @@ class TestResult:
             self.score = self.passed_tests / self.total_tests
         else:
             self.score = 0.0
+
+
+
+
+
+
+

@@ -177,3 +177,10 @@ class PythonPlugin(LanguagePlugin):
                     feedback_parts.append(f"  • {message}")
         
         return '\n'.join(feedback_parts)
+
+
+
+
+
+
+

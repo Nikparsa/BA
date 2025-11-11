@@ -29,3 +29,10 @@ def test_range():
     expected = ['1', '2', 'Fizz', '4', 'Buzz', 'Fizz', '7', '8', 'Fizz', 'Buzz', '11', 'Fizz', '13', '14', 'FizzBuzz']
     actual = [s.fizzbuzz(i) for i in range(1, 16)]
     assert actual == expected
+
+
+
+
+
+
+

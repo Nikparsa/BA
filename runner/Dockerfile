@@ -15,3 +15,10 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 5001
 CMD ["python", "runner.py"]
+
+
+
+
+
+
+

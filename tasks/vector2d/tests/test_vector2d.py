@@ -42,3 +42,10 @@ def test_vector_dot_product():
     v1 = s.Vector2D(1, 2)
     v2 = s.Vector2D(3, 4)
     assert v1.dot(v2) == 11
+
+
+
+
+
+
+
