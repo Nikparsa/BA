@@ -39,15 +39,17 @@ A **language-agnostic** educational platform for automated programming assignmen
 ```bash
 # 1. Install dependencies
 cd backend && npm install
-cd ../frontend && npm install  
-cd ../runner && pip install flask requests pytest pytest-json-report
+cd ../frontend && npm install
+cd ../runner
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt  # On macOS/Linux use source .venv/bin/activate
 
 # 2. Start all services (3 terminals)
 # Terminal 1 - Backend
 cd backend && node src/index.js
 
 # Terminal 2 - Runner  
-cd runner && python run.py
+cd runner && .\.venv\Scripts\python.exe run.py   # or source .venv/bin/activate && python run.py
 
 # Terminal 3 - Frontend
 cd frontend && npm run dev
@@ -55,7 +57,7 @@ cd frontend && npm run dev
 
 ### Or use the startup script:
 ```powershell
-.\start-project.ps1
+.\start-project.ps1   # Automatically creates/uses runner .venv
 ```
 
 ### Access the Application

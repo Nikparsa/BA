@@ -2,10 +2,10 @@
   "name": "aca-backend",
   "version": "1.0.0",
   "description": "ACA Backend Server",
-  "main": "server.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
   },
   "dependencies": {
     "express": "^4.18.2",

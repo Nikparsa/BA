@@ -44,9 +44,21 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Write-Host "Installing Python dependencies..." -ForegroundColor Cyan
+Write-Host "Setting up Python virtual environment..." -ForegroundColor Cyan
 Set-Location ../runner
-pip install flask requests pytest pytest-json-report
+if (!(Test-Path ".venv")) {
+    python -m venv .venv
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Failed to create virtual environment" -ForegroundColor Red
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+}
+
+$venvPython = Join-Path (Get-Location) ".venv/Scripts/python.exe"
+Write-Host "Installing Python dependencies inside virtual environment..." -ForegroundColor Cyan
+& $venvPython -m pip install --upgrade pip | Out-Null
+& $venvPython -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Failed to install Python dependencies" -ForegroundColor Red
     Read-Host "Press Enter to exit"
@@ -66,7 +78,7 @@ Write-Host ""
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; node src/index.js"
 Start-Sleep -Seconds 3
 
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd runner; python runner.py"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd runner; .\.venv\Scripts\python.exe run.py"
 Start-Sleep -Seconds 3
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"

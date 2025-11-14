@@ -51,9 +51,20 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo Installing Python dependencies...
+echo Setting up Python virtual environment for runner...
 cd ../runner
-pip install -r requirements.txt
+if not exist .venv (
+    python -m venv .venv
+    if %errorlevel% neq 0 (
+        echo ERROR: Failed to create virtual environment
+        pause
+        exit /b 1
+    )
+)
+
+echo Installing Python dependencies inside virtual environment...
+call .venv\Scripts\python.exe -m pip install --upgrade pip >nul
+call .venv\Scripts\python.exe -m pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo ERROR: Failed to install Python dependencies
     pause
@@ -73,7 +84,7 @@ echo.
 start "ACA Backend" cmd /k "cd backend && node src/index.js"
 timeout /t 3 /nobreak >nul
 
-start "ACA Runner" cmd /k "cd runner && python run.py"
+start "ACA Runner" cmd /k "cd runner && call .venv\Scripts\activate && python run.py"
 timeout /t 3 /nobreak >nul
 
 echo.
