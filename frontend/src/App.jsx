@@ -43,13 +43,17 @@ function App() {
 
   const hydrateData = async () => {
     try {
-      const response = await axios.get('/assignments');
-      setAssignments(response.data);
-      if (!selectedAssignment && response.data.length) {
-        setSelectedAssignment(response.data[0]);
+      const [assignmentsResponse, submissionsResponse] = await Promise.all([
+        axios.get('/assignments'),
+        axios.get('/submissions').catch(() => ({ data: [] })) // Fallback if no submissions
+      ]);
+      setAssignments(assignmentsResponse.data);
+      setSubmissions(submissionsResponse.data);
+      if (!selectedAssignment && assignmentsResponse.data.length) {
+        setSelectedAssignment(assignmentsResponse.data[0]);
       }
     } catch (error) {
-      console.error('Failed to load assignments:', error);
+      console.error('Failed to load data:', error);
     }
   };
 
@@ -118,15 +122,9 @@ function App() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      const optimisticSubmission = {
-        id: data.submissionId,
-        assignmentId,
-        filename: file.name,
-        status: 'queued',
-        createdAt: new Date().toISOString()
-      };
-
-      setSubmissions((prev) => [optimisticSubmission, ...prev]);
+      // Reload submissions from backend to get the real data
+      const submissionsResponse = await axios.get('/submissions').catch(() => ({ data: [] }));
+      setSubmissions(submissionsResponse.data);
       setStatusMessage({ type: 'success', text: 'Submission received. We will notify you once grading is complete.' });
       return { success: true };
     } catch (error) {
@@ -610,6 +608,7 @@ function SubmissionsSection({ submissions, assignments }) {
             <span>Assignment</span>
             <span>Submitted</span>
             <span>Status</span>
+            <span>Score</span>
             <span>File</span>
           </div>
           {submissions.map((submission) => (
@@ -618,6 +617,13 @@ function SubmissionsSection({ submissions, assignments }) {
               <span>{new Date(submission.createdAt).toLocaleString()}</span>
               <span className={`status-pill status-${submission.status}`}>
                 {submission.status}
+              </span>
+              <span>
+                {submission.score !== undefined && submission.score !== null ? (
+                  <strong>{Math.round(submission.score * 100)}%</strong>
+                ) : (
+                  <span style={{ color: '#999' }}>—</span>
+                )}
               </span>
               <span>{submission.filename}</span>
             </div>

@@ -12,9 +12,13 @@ app = Flask(__name__)
 
 PORT = 5001
 BACKEND_URL = 'http://localhost:3000/api'
-SUBMISSIONS_DIR = '../backend/data/submissions'
-RESULTS_DIR = '../backend/data/results'
-TASKS_DIR = '../tasks'
+
+# Get absolute paths relative to this file
+RUNNER_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(RUNNER_DIR)
+SUBMISSIONS_DIR = os.path.join(PROJECT_ROOT, 'backend', 'src', 'data', 'submissions')
+RESULTS_DIR = os.path.join(PROJECT_ROOT, 'backend', 'src', 'data', 'results')
+TASKS_DIR = os.path.join(PROJECT_ROOT, 'tasks')
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -109,6 +113,7 @@ def run_pytest(workdir, test_dir):
             'feedback': f'Test execution failed: {str(e)}'
         }
 
+print("DEBUG: About to register /health route")  # Debug before route
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
@@ -128,8 +133,10 @@ def get_languages():
         "languages_info": languages_info
     })
 
+print("DEBUG: About to register /run route")  # Debug before route
 @app.route('/run', methods=['POST'])
 def run():
+    print("DEBUG: /run endpoint called")  # Debug line
     payload = request.get_json(force=True)
     submission_id = payload.get('submissionId')
     assignment_id = payload.get('assignmentId')
@@ -139,29 +146,39 @@ def run():
         return jsonify({'error': 'missing fields'}), 400
 
     submission_zip = os.path.join(SUBMISSIONS_DIR, filename)
+    print(f"DEBUG: Looking for file: {submission_zip}")  # Debug
+    print(f"DEBUG: File exists: {os.path.isfile(submission_zip)}")  # Debug
     if not os.path.isfile(submission_zip):
-        return jsonify({'error': 'file not found'}), 404
+        return jsonify({'error': 'file not found', 'path': submission_zip}), 404
 
     workdir = tempfile.mkdtemp(prefix=f"run_{submission_id}_")
+    print(f"DEBUG: Created workdir: {workdir}")  # Debug
     try:
         # Extract submission files
+        print("DEBUG: Extracting ZIP file...")  # Debug
         with zipfile.ZipFile(submission_zip, 'r') as zf:
             zf.extractall(workdir)
+        print("DEBUG: ZIP extracted successfully")  # Debug
 
         # Get assignment information
         try:
-            assignment_response = requests.get(f"{BACKEND_URL}/assignments")
+            assignment_response = requests.get(f"{BACKEND_URL}/runner/assignments")
             assignment_response.raise_for_status()
             assignments = assignment_response.json()
+            print(f"DEBUG: Got assignments: {assignments}")  # Debug
+            print(f"DEBUG: Assignments type: {type(assignments)}")  # Debug
         except Exception as e:
             raise RuntimeError(f'Failed to fetch assignment info: {e}')
 
         # Find assignment by ID
         assignment = None
-        for a in assignments:
-            if a['id'] == assignment_id:
-                assignment = a
-                break
+        if isinstance(assignments, list):
+            for a in assignments:
+                if isinstance(a, dict) and a.get('id') == assignment_id:
+                    assignment = a
+                    break
+        else:
+            raise RuntimeError(f'Expected list of assignments, got {type(assignments)}')
         
         if not assignment:
             raise RuntimeError('Assignment not found')
@@ -198,7 +215,9 @@ def run():
             raise RuntimeError('Could not detect programming language')
 
         # Execute tests using language plugin (simplified for Python)
+        print("DEBUG: About to run pytest...")  # Debug
         test_result = run_pytest(workdir, tests_dir)
+        print(f"DEBUG: Test result: {test_result}")  # Debug
 
         # Prepare callback data
         callback_data = {
@@ -212,8 +231,10 @@ def run():
         }
 
         # Send results back to backend
+        print(f"DEBUG: Sending callback to backend: {callback_data}")  # Debug
         try:
-            requests.post(f"{BACKEND_URL}/runner/callback", json=callback_data, timeout=5)
+            callback_response = requests.post(f"{BACKEND_URL}/runner/callback", json=callback_data, timeout=5)
+            print(f"DEBUG: Callback response: {callback_response.status_code}")  # Debug
         except Exception as e:
             print(f"Warning: Failed to send callback: {e}")
 
@@ -224,6 +245,10 @@ def run():
         })
         
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"DEBUG: Error occurred: {str(e)}")  # Debug
+        print(f"DEBUG: Traceback:\n{error_trace}")  # Debug
         # Send error callback
         try:
             requests.post(f"{BACKEND_URL}/runner/callback", json={
@@ -244,4 +269,8 @@ def run():
 
 if __name__ == '__main__':
     print(f"Starting ACA Runner on port {PORT}")
+    # Debug: Print all registered routes
+    print("DEBUG: Registered routes:")
+    for rule in app.url_map.iter_rules():
+        print(f"  {rule.rule} -> {rule.endpoint} [{', '.join(rule.methods)}]")
     app.run(host='0.0.0.0', port=PORT, debug=False)

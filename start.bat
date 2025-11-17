@@ -84,7 +84,7 @@ echo.
 start "ACA Backend" cmd /k "cd backend && node src/index.js"
 timeout /t 3 /nobreak >nul
 
-start "ACA Runner" cmd /k "cd runner && call .venv\Scripts\activate && python run.py"
+start "ACA Runner" cmd /k "cd runner && call .venv\Scripts\activate && python runner.py"
 timeout /t 3 /nobreak >nul
 
 echo.

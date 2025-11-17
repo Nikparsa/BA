@@ -4,17 +4,25 @@ ACA Runner Entry Point
 Simple wrapper to start the runner service
 """
 
-from runner import app
 import os
+import sys
 
-if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 5001))
-    print(f"Starting ACA Runner on port {PORT}")
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+# Get the directory where this script is located
+runner_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(runner_dir)
 
+# Read runner.py and execute it
+runner_file = os.path.join(runner_dir, 'runner.py')
+with open(runner_file, 'r', encoding='utf-8') as f:
+    runner_code = f.read()
 
+# Create a namespace for execution
+namespace = {
+    '__name__': '__main__',
+    '__file__': runner_file,
+    'os': os,
+    'sys': sys
+}
 
-
-
-
-
+# Execute the code
+exec(runner_code, namespace)

@@ -78,7 +78,7 @@ Write-Host ""
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; node src/index.js"
 Start-Sleep -Seconds 3
 
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd runner; .\.venv\Scripts\python.exe run.py"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd runner; .\.venv\Scripts\python.exe runner.py"
 Start-Sleep -Seconds 3
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
