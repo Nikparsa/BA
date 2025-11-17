@@ -198,23 +198,30 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
   });
 });
 
-// Get all submissions for current user
+// Get all submissions for current user (or all submissions for teachers)
 app.get('/api/submissions', authRequired, (req, res) => {
-  const userSubmissions = database.submissions
-    .filter(s => s.userId === req.user.id)
+  // Teachers can see all submissions, students only their own
+  const submissionsToReturn = req.user.role === 'teacher'
+    ? database.submissions
+    : database.submissions.filter(s => s.userId === req.user.id);
+  
+  const enrichedSubmissions = submissionsToReturn
     .map(submission => {
       const result = database.results.find(r => r.submissionId === submission.id);
+      const user = database.users.find(u => u.id === submission.userId);
       return {
         ...submission,
         score: result?.score,
         totalTests: result?.totalTests,
         passedTests: result?.passedTests,
-        feedback: result?.feedback
+        feedback: result?.feedback,
+        // Include user email for teachers
+        userEmail: user?.email || 'Unknown'
       };
     })
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Newest first
   
-  res.json(userSubmissions);
+  res.json(enrichedSubmissions);
 });
 
 app.get('/api/submissions/:id', authRequired, (req, res) => {

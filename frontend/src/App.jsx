@@ -635,17 +635,29 @@ function SubmissionsSection({ submissions, assignments }) {
 }
 
 function TeacherSection({ assignments, submissions }) {
-  const totalStudents = 42;
+  const lookupTitle = (assignmentId) =>
+    assignments.find((assignment) => assignment.id === assignmentId)?.title || 'Assignment';
+  
+  // Calculate unique students
+  const uniqueStudents = new Set(submissions.map(s => s.userEmail || s.userId)).size;
   const totalAssignments = assignments.length;
   const totalSubmissions = submissions.length;
+  const completedSubmissions = submissions.filter(s => s.status === 'completed').length;
+  const averageScore = submissions.length > 0 && completedSubmissions > 0
+    ? Math.round(
+        submissions
+          .filter(s => s.status === 'completed' && s.score !== undefined)
+          .reduce((sum, s) => sum + (s.score || 0), 0) / completedSubmissions * 100
+      )
+    : 0;
 
   return (
     <div className="space-y">
       <section className="stat-grid">
         <div className="stat-card">
           <h3>Active students</h3>
-          <p className="stat-value">{totalStudents}</p>
-          <span>Across your enrolled cohorts</span>
+          <p className="stat-value">{uniqueStudents}</p>
+          <span>Students with submissions</span>
         </div>
         <div className="stat-card">
           <h3>Published assignments</h3>
@@ -657,20 +669,65 @@ function TeacherSection({ assignments, submissions }) {
           <p className="stat-value">{totalSubmissions}</p>
           <span>Pending and graded</span>
         </div>
+        <div className="stat-card">
+          <h3>Average score</h3>
+          <p className="stat-value">{averageScore}%</p>
+          <span>Across all completed submissions</span>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>All submissions</h2>
+        <p>View and monitor all student submissions across all assignments.</p>
+
+        {submissions.length === 0 ? (
+          <EmptyState
+            title="No submissions yet"
+            description="Student submissions will appear here once they submit their assignments."
+          />
+        ) : (
+          <div className="submission-table">
+            <div className="submission-table-header">
+              <span>Student</span>
+              <span>Assignment</span>
+              <span>Submitted</span>
+              <span>Status</span>
+              <span>Score</span>
+              <span>File</span>
+            </div>
+            {submissions.map((submission) => (
+              <div key={submission.id} className="submission-table-row">
+                <span>{submission.userEmail || `User #${submission.userId}`}</span>
+                <span>{lookupTitle(submission.assignmentId)}</span>
+                <span>{new Date(submission.createdAt).toLocaleString()}</span>
+                <span className={`status-pill status-${submission.status}`}>
+                  {submission.status}
+                </span>
+                <span>
+                  {submission.score !== undefined && submission.score !== null ? (
+                    <strong>{Math.round(submission.score * 100)}%</strong>
+                  ) : (
+                    <span style={{ color: '#999' }}>—</span>
+                  )}
+                </span>
+                <span>{submission.filename}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="card highlighted">
         <h2>Insights snapshot</h2>
         <ul className="insights-list">
           <li>
-            <strong>85%</strong> of students submitted on time for the latest assignment.
+            <strong>{completedSubmissions} of {totalSubmissions}</strong> submissions have been graded.
           </li>
           <li>
-            Top performers: <span className="badge badge-soft">Advanced Python</span>
-            <span className="badge badge-soft">Data Structures</span>
+            Average score: <strong>{averageScore}%</strong> across all completed submissions.
           </li>
           <li>
-            <strong>Recommended action:</strong> Share targeted feedback to boost participation.
+            <strong>Recommended action:</strong> Review pending submissions and provide feedback to students.
           </li>
         </ul>
       </section>
