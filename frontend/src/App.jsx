@@ -10,12 +10,65 @@ const NAV_ITEMS = [
   { id: 'teacher', label: 'Teacher Center', description: 'Manage classes and insights', roles: ['teacher'] }
 ];
 
+const GRADE_BANDS = [
+  { min: 90, label: 'Sehr gut', className: 'status-grade-excellent' },
+  { min: 80, label: 'Gut', className: 'status-grade-good' },
+  { min: 65, label: 'Befriedigend', className: 'status-grade-satisfactory' },
+  { min: 50, label: 'Genügend', className: 'status-grade-sufficient' },
+  { min: 0, label: 'Nicht genügend', className: 'status-grade-insufficient' }
+];
+
+function getGradeInfo(score) {
+  if (score === undefined || score === null) {
+    return null;
+  }
+
+  const rawPercent = score * 100;
+  const percent = Math.round(rawPercent);
+  for (const band of GRADE_BANDS) {
+    if (rawPercent >= band.min) {
+      return { ...band, percent };
+    }
+  }
+  return null;
+}
+
+function getSubmissionStatusInfo(submission) {
+  if (!submission) {
+    return { label: 'Unbekannt', className: 'status-default' };
+  }
+
+  if (submission.status === 'queued') {
+    return { label: 'In Bewertung', className: 'status-queued' };
+  }
+
+  const gradeInfo = getGradeInfo(submission.score);
+  if (gradeInfo) {
+    return gradeInfo;
+  }
+
+  if (submission.status) {
+    return { label: submission.status, className: 'status-default' };
+  }
+
+  return { label: 'Unbekannt', className: 'status-default' };
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
   const [assignments, setAssignments] = useState([]);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [showCreateAssignment, setShowCreateAssignment] = useState(false);
+  const [createAssignmentForm, setCreateAssignmentForm] = useState({
+    slug: '',
+    title: '',
+    description: '',
+    details: ''
+  });
+  const [testFile, setTestFile] = useState(null);
+  const [savingAssignment, setSavingAssignment] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -31,7 +84,7 @@ function App() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       setActiveSection(parsedUser.role === 'teacher' ? 'overview' : 'assignments');
-      hydrateData();
+      hydrateData(parsedUser);
     }
   }, []);
 
@@ -41,7 +94,7 @@ function App() {
     }
   }, [user]);
 
-  const hydrateData = async () => {
+  const hydrateData = async (userOverride = null) => {
     try {
       const [assignmentsResponse, submissionsResponse] = await Promise.all([
         axios.get('/assignments'),
@@ -106,6 +159,8 @@ function App() {
     setUser(null);
     setAssignments([]);
     setSubmissions([]);
+    setAssignmentTemplates([]);
+    setShowCreateAssignment(false);
     setActiveSection('overview');
   };
 
@@ -136,6 +191,69 @@ function App() {
     }
   };
 
+  const openCreateAssignmentModal = () => {
+    setCreateAssignmentForm({
+      slug: '',
+      title: '',
+      description: '',
+      details: ''
+    });
+    setTestFile(null);
+    setShowCreateAssignment(true);
+  };
+
+  const closeCreateAssignmentModal = () => {
+    setShowCreateAssignment(false);
+    setCreateAssignmentForm({
+      slug: '',
+      title: '',
+      description: '',
+      details: ''
+    });
+    setTestFile(null);
+  };
+
+  const handleAssignmentFieldChange = (field, value) => {
+    setCreateAssignmentForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const createAssignment = async (event) => {
+    event.preventDefault();
+    const trimmedSlug = createAssignmentForm.slug.trim();
+    if (!trimmedSlug || !createAssignmentForm.title.trim()) {
+      setStatusMessage({ type: 'error', text: 'Slug and title are required.' });
+      return;
+    }
+
+    if (!testFile) {
+      setStatusMessage({ type: 'error', text: 'Please upload a test file.' });
+      return;
+    }
+
+    setSavingAssignment(true);
+    setStatusMessage(null);
+    try {
+      const payload = new FormData();
+      payload.append('slug', trimmedSlug);
+      payload.append('title', createAssignmentForm.title.trim());
+      payload.append('description', createAssignmentForm.description);
+      payload.append('details', createAssignmentForm.details);
+      payload.append('testFile', testFile);
+
+      await axios.post('/assignments', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await hydrateData();
+      setStatusMessage({ type: 'success', text: 'Assignment created successfully.' });
+      closeCreateAssignmentModal();
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to create assignment.';
+      setStatusMessage({ type: 'error', text: message });
+    } finally {
+      setSavingAssignment(false);
+    }
+  };
+
   const stats = useMemo(() => {
     const totalAssignments = assignments.length;
     const totalSubmissions = submissions.length;
@@ -160,13 +278,14 @@ function App() {
   const availableSections = NAV_ITEMS.filter((item) => item.roles.includes(user.role));
 
   return (
-    <AppLayout
-      user={user}
-      activeSection={activeSection}
-      onChangeSection={setActiveSection}
-      onLogout={logout}
-      navItems={availableSections}
-    >
+    <>
+      <AppLayout
+        user={user}
+        activeSection={activeSection}
+        onChangeSection={setActiveSection}
+        onLogout={logout}
+        navItems={availableSections}
+      >
       {statusMessage && (
         <MessageBanner type={statusMessage.type} onClose={() => setStatusMessage(null)}>
           {statusMessage.text}
@@ -192,9 +311,25 @@ function App() {
       )}
 
       {activeSection === 'teacher' && user.role === 'teacher' && (
-        <TeacherSection assignments={assignments} submissions={submissions} />
+        <TeacherSection
+          assignments={assignments}
+          submissions={submissions}
+          onCreateAssignment={openCreateAssignmentModal}
+        />
       )}
-    </AppLayout>
+      </AppLayout>
+      {showCreateAssignment && (
+        <CreateAssignmentModal
+          form={createAssignmentForm}
+          onChangeField={handleAssignmentFieldChange}
+          onSelectFile={setTestFile}
+          testFile={testFile}
+          onClose={closeCreateAssignmentModal}
+          onSubmit={createAssignment}
+          saving={savingAssignment}
+        />
+      )}
+    </>
   );
 }
 
@@ -467,9 +602,7 @@ function OverviewSection({ stats, assignments, submissions }) {
                   <strong>Submission #{submission.id}</strong>
                   <p>{new Date(submission.createdAt).toLocaleString()}</p>
                 </div>
-                <span className={`status-pill status-${submission.status}`}>
-                  {submission.status}
-                </span>
+                <StatusPill submission={submission} />
               </li>
             ))}
           </ul>
@@ -548,6 +681,16 @@ function AssignmentsSection({
               <h2>{selectedAssignment.title}</h2>
               <p>{selectedAssignment.description}</p>
             </header>
+            {Array.isArray(selectedAssignment.details) && selectedAssignment.details.length > 0 && (
+              <div className="assignment-brief">
+                <h3>Assignment brief</h3>
+                <ul>
+                  {selectedAssignment.details.map((detail, index) => (
+                    <li key={index}>{detail}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="submission-guidelines">
               <h3>Submission guidelines</h3>
               <ul>
@@ -615,9 +758,7 @@ function SubmissionsSection({ submissions, assignments }) {
             <div key={submission.id} className="submission-table-row">
               <span>{lookupTitle(submission.assignmentId)}</span>
               <span>{new Date(submission.createdAt).toLocaleString()}</span>
-              <span className={`status-pill status-${submission.status}`}>
-                {submission.status}
-              </span>
+              <StatusPill submission={submission} />
               <span>
                 {submission.score !== undefined && submission.score !== null ? (
                   <strong>{Math.round(submission.score * 100)}%</strong>
@@ -634,7 +775,7 @@ function SubmissionsSection({ submissions, assignments }) {
   );
 }
 
-function TeacherSection({ assignments, submissions }) {
+function TeacherSection({ assignments, submissions, onCreateAssignment }) {
   const lookupTitle = (assignmentId) =>
     assignments.find((assignment) => assignment.id === assignmentId)?.title || 'Assignment';
   
@@ -642,18 +783,17 @@ function TeacherSection({ assignments, submissions }) {
   const uniqueStudents = new Set(submissions.map(s => s.userEmail || s.userId)).size;
   const totalAssignments = assignments.length;
   const totalSubmissions = submissions.length;
-  const completedSubmissions = submissions.filter(s => s.status === 'completed').length;
-  const averageScore = submissions.length > 0 && completedSubmissions > 0
+  const gradedSubmissions = submissions.filter(s => typeof s.score === 'number');
+  const completedSubmissions = gradedSubmissions.length;
+  const averageScore = completedSubmissions > 0
     ? Math.round(
-        submissions
-          .filter(s => s.status === 'completed' && s.score !== undefined)
-          .reduce((sum, s) => sum + (s.score || 0), 0) / completedSubmissions * 100
+        (gradedSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / completedSubmissions) * 100
       )
     : 0;
 
   return (
     <div className="space-y">
-      <section className="stat-grid">
+      <section className="stat-grid teacher-header">
         <div className="stat-card">
           <h3>Active students</h3>
           <p className="stat-value">{uniqueStudents}</p>
@@ -673,6 +813,13 @@ function TeacherSection({ assignments, submissions }) {
           <h3>Average score</h3>
           <p className="stat-value">{averageScore}%</p>
           <span>Across all completed submissions</span>
+        </div>
+        <div className="stat-card teacher-create">
+          <h3>Assignments</h3>
+          <p className="stat-value">{totalAssignments}</p>
+          <button className="create-assignment-btn" onClick={onCreateAssignment}>
+            <span>+ Create assignment</span>
+          </button>
         </div>
       </section>
 
@@ -700,9 +847,7 @@ function TeacherSection({ assignments, submissions }) {
                 <span>{submission.userEmail || `User #${submission.userId}`}</span>
                 <span>{lookupTitle(submission.assignmentId)}</span>
                 <span>{new Date(submission.createdAt).toLocaleString()}</span>
-                <span className={`status-pill status-${submission.status}`}>
-                  {submission.status}
-                </span>
+                <StatusPill submission={submission} />
                 <span>
                   {submission.score !== undefined && submission.score !== null ? (
                     <strong>{Math.round(submission.score * 100)}%</strong>
@@ -733,6 +878,99 @@ function TeacherSection({ assignments, submissions }) {
       </section>
     </div>
   );
+}
+
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <header className="modal-header">
+          <h3>{title}</h3>
+          <button type="button" onClick={onClose} aria-label="Close modal">
+            ×
+          </button>
+        </header>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function CreateAssignmentModal({ form, onChangeField, onSelectFile, testFile, onSubmit, onClose, saving }) {
+  return (
+    <Modal title="Create assignment" onClose={onClose}>
+      <form className="modal-form" onSubmit={onSubmit}>
+        <label>
+          Slug
+          <input
+            type="text"
+            value={form.slug}
+            onChange={(event) => onChangeField('slug', event.target.value)}
+            placeholder="e.g. even-number-check"
+            required
+          />
+        </label>
+
+        <label>
+          Title
+          <input
+            type="text"
+            value={form.title}
+            onChange={(event) => onChangeField('title', event.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          Description
+          <input
+            type="text"
+            value={form.description}
+            onChange={(event) => onChangeField('description', event.target.value)}
+            placeholder="Short summary shown to students"
+          />
+        </label>
+
+        <label>
+          Details
+          <textarea
+            rows={4}
+            value={form.details}
+            onChange={(event) => onChangeField('details', event.target.value)}
+            placeholder="One requirement per line"
+          />
+        </label>
+
+        <label>
+          Test file (.py)
+          <input
+            type="file"
+            accept=".py"
+            onChange={(event) => onSelectFile(event.target.files?.[0] || null)}
+            required
+          />
+          {testFile && <span className="file-hint">{testFile.name}</span>}
+        </label>
+        <small style={{ color: '#475569' }}>
+          Upload the pytest file used to grade submissions. Students cannot see this file.
+        </small>
+
+        <div className="modal-actions">
+          <SecondaryButton type="button" onClick={onClose}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton type="submit" disabled={saving}>
+            {saving ? 'Creating…' : 'Create assignment'}
+          </PrimaryButton>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function StatusPill({ submission }) {
+  const { label, className } = getSubmissionStatusInfo(submission);
+  return <span className={`status-pill ${className}`}>{label}</span>;
 }
 
 function MessageBanner({ type = 'info', children, onClose }) {

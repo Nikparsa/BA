@@ -1,6 +1,7 @@
 import importlib.util
 import sys
 from pathlib import Path
+import math
 
 def load_solution():
     sol_path = Path('solution.py')
@@ -28,7 +29,9 @@ def test_calculate_std():
     s = load_solution()
     data = [1, 2, 3, 4, 5]
     std = s.calculate_std(data)
-    assert abs(std - 1.58) < 0.1
+    # Expect population standard deviation (divide by N)
+    expected_std = math.sqrt(2.0)
+    assert abs(std - expected_std) < 0.02
 
 def test_empty_data():
     s = load_solution()

@@ -19,6 +19,8 @@ PROJECT_ROOT = os.path.dirname(RUNNER_DIR)
 SUBMISSIONS_DIR = os.path.join(PROJECT_ROOT, 'backend', 'src', 'data', 'submissions')
 RESULTS_DIR = os.path.join(PROJECT_ROOT, 'backend', 'src', 'data', 'results')
 TASKS_DIR = os.path.join(PROJECT_ROOT, 'tasks')
+CUSTOM_TASKS_DIR = os.path.join(PROJECT_ROOT, 'backend', 'src', 'data', 'tests')
+os.makedirs(CUSTOM_TASKS_DIR, exist_ok=True)
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -29,7 +31,6 @@ def run_pytest(workdir, test_dir):
     cmd = [
         'python', '-m', 'pytest',
         '-q',
-        '--maxfail=1',
         '--disable-warnings',
         '--json-report',
         f'--json-report-file={report_path}',
@@ -185,6 +186,9 @@ def run():
 
         # Set up test directory
         task_dir = os.path.join(TASKS_DIR, assignment['slug'])
+        if not os.path.exists(task_dir):
+            task_dir = os.path.join(CUSTOM_TASKS_DIR, assignment['slug'])
+
         tests_dir = os.path.join(task_dir, 'tests')
         
         if not os.path.exists(tests_dir):

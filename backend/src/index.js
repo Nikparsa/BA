@@ -20,11 +20,12 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 const dataDir = path.join(__dirname, 'data');
 const submissionsDir = path.join(dataDir, 'submissions');
 const resultsDir = path.join(dataDir, 'results');
+const customTasksDir = path.join(dataDir, 'tests');
 const dbPath = path.join(dataDir, 'database.json');
 
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
-if (!fs.existsSync(submissionsDir)) fs.mkdirSync(submissionsDir);
-if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir);
+for (const dir of [dataDir, submissionsDir, resultsDir, customTasksDir]) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
 
 // Load database from file or create default
 let database;
@@ -41,6 +42,22 @@ if (fs.existsSync(dbPath)) {
   saveDatabase();
 }
 
+function ensureAssignmentMetadata() {
+  let mutated = false;
+  database.assignments = (database.assignments || []).map((assignment) => {
+    if (!assignment.origin) {
+      mutated = true;
+      return { ...assignment, origin: 'builtin' };
+    }
+    return assignment;
+  });
+  if (mutated) {
+    saveDatabase();
+  }
+}
+
+ensureAssignmentMetadata();
+
 function createDefaultDatabase() {
   return {
     users: [
@@ -48,9 +65,9 @@ function createDefaultDatabase() {
       { id: 2, email: 'teacher@test.com', password: '123456', role: 'teacher' }
     ],
     assignments: [
-      { id: 1, title: 'FizzBuzz', slug: 'fizzbuzz', description: 'Write a FizzBuzz function' },
-      { id: 2, title: 'CSV Statistics', slug: 'csv-stats', description: 'Process CSV data' },
-      { id: 3, title: 'Vector2D', slug: 'vector2d', description: '2D Vector operations' }
+      { id: 1, title: 'FizzBuzz', slug: 'fizzbuzz', description: 'Write a FizzBuzz function', origin: 'builtin' },
+      { id: 2, title: 'CSV Statistics', slug: 'csv-stats', description: 'Process CSV data', origin: 'builtin' },
+      { id: 3, title: 'Vector2D', slug: 'vector2d', description: '2D Vector operations', origin: 'builtin' }
     ],
     submissions: [],
     results: []
@@ -78,6 +95,46 @@ function authRequired(req, res, next) {
   }
 }
 
+function teacherOnly(req, res, next) {
+  if (req.user?.role !== 'teacher') {
+    return res.status(403).json({ error: 'Teacher permissions required' });
+  }
+  next();
+}
+
+function normalizeDetails(details) {
+  if (!details) return [];
+  if (Array.isArray(details)) {
+    return details
+      .map((detail) => (typeof detail === 'string' ? detail.trim() : ''))
+      .filter(Boolean);
+  }
+  if (typeof details === 'string') {
+    return details
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function toTitleCase(slug = '') {
+  return slug
+    .replace(/[-_]/g, ' ')
+    .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase())
+    .trim();
+}
+
+function sanitizeSlug(value = '') {
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/--+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // Multer for file uploads
 const storage = multer.diskStorage({
   destination: submissionsDir,
@@ -86,6 +143,10 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
+const teacherTestsUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 }
+});
 
 // Routes
 app.get('/api', (req, res) => {
@@ -159,6 +220,92 @@ app.get('/api/assignments', authRequired, (req, res) => {
 // Public route for runner (no auth required)
 app.get('/api/runner/assignments', (req, res) => {
   res.json(database.assignments);
+});
+
+app.post('/api/assignments', authRequired, teacherOnly, teacherTestsUpload.single('testFile'), (req, res) => {
+  const { title, slug, description = '', details } = req.body || {};
+
+  if (!title || !slug) {
+    return res.status(400).json({ error: 'Title and slug are required' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'Test file is required' });
+  }
+
+  const normalizedSlug = sanitizeSlug(slug);
+  if (!normalizedSlug) {
+    return res.status(400).json({ error: 'Invalid slug. Use alphanumeric characters and hyphens only.' });
+  }
+
+  if (database.assignments.some((assignment) => assignment.slug === normalizedSlug)) {
+    return res.status(400).json({ error: 'An assignment with this slug already exists.' });
+  }
+
+  const assignmentDir = path.join(customTasksDir, normalizedSlug);
+  const assignmentTestsDir = path.join(assignmentDir, 'tests');
+  fs.mkdirSync(assignmentTestsDir, { recursive: true });
+
+  const originalName = (req.file.originalname || 'tests.py').replace(/[^\w.\-]/g, '_');
+  const filename = originalName.endsWith('.py') ? originalName : `${originalName}.py`;
+  const destination = path.join(assignmentTestsDir, filename);
+  fs.writeFileSync(destination, req.file.buffer);
+
+  const nextId = database.assignments.reduce((max, assignment) => Math.max(max, assignment.id), 0) + 1;
+  const newAssignment = {
+    id: nextId,
+    title: title.trim(),
+    slug: normalizedSlug,
+    description: description.trim(),
+    details: normalizeDetails(details),
+    origin: 'custom',
+    createdBy: req.user.id,
+    createdAt: new Date().toISOString()
+  };
+
+  database.assignments.push(newAssignment);
+  saveDatabase();
+
+  res.status(201).json(newAssignment);
+});
+
+app.put('/api/assignments/:id', authRequired, teacherOnly, (req, res) => {
+  const assignmentId = parseInt(req.params.id);
+  const assignment = database.assignments.find((item) => item.id === assignmentId);
+
+  if (!assignment) {
+    return res.status(404).json({ error: 'Assignment not found' });
+  }
+
+  const { title, description, details } = req.body || {};
+
+  if (title) assignment.title = title.trim();
+  if (description !== undefined) assignment.description = description.trim();
+  if (details !== undefined) assignment.details = normalizeDetails(details);
+
+  saveDatabase();
+  res.json(assignment);
+});
+
+app.delete('/api/assignments/:id', authRequired, teacherOnly, (req, res) => {
+  const assignmentId = parseInt(req.params.id);
+  const assignmentIndex = database.assignments.findIndex((assignment) => assignment.id === assignmentId);
+
+  if (assignmentIndex === -1) {
+    return res.status(404).json({ error: 'Assignment not found' });
+  }
+
+  const [removedAssignment] = database.assignments.splice(assignmentIndex, 1);
+
+  if (removedAssignment?.origin === 'custom') {
+    const customDir = path.join(customTasksDir, removedAssignment.slug);
+    if (fs.existsSync(customDir)) {
+      fs.rmSync(customDir, { recursive: true, force: true });
+    }
+  }
+
+  saveDatabase();
+  res.json({ ok: true });
 });
 
 // Submission routes

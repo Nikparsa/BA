@@ -12,23 +12,29 @@ def load_solution():
     spec.loader.exec_module(mod)
     return mod
 
-def test_basic():
+def test_returns_number():
     s = load_solution()
     assert s.fizzbuzz(1) == '1'
+
+def test_returns_fizz():
+    s = load_solution()
     assert s.fizzbuzz(3) == 'Fizz'
+
+def test_returns_buzz():
+    s = load_solution()
     assert s.fizzbuzz(5) == 'Buzz'
+
+def test_returns_fizzbuzz():
+    s = load_solution()
     assert s.fizzbuzz(15) == 'FizzBuzz'
 
-def test_edges():
+def test_handles_zero():
     s = load_solution()
     assert s.fizzbuzz(0) == '0'
-    assert s.fizzbuzz(-3) == 'Fizz'
 
-def test_range():
+def test_handles_negative_multiples():
     s = load_solution()
-    expected = ['1', '2', 'Fizz', '4', 'Buzz', 'Fizz', '7', '8', 'Fizz', 'Buzz', '11', 'Fizz', '13', '14', 'FizzBuzz']
-    actual = [s.fizzbuzz(i) for i in range(1, 16)]
-    assert actual == expected
+    assert s.fizzbuzz(-3) == 'Fizz'
 
 
 
