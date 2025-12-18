@@ -4,7 +4,6 @@ import axios from 'axios';
 axios.defaults.baseURL = 'http://localhost:3000/api';
 
 const NAV_ITEMS = [
-  { id: 'overview', label: 'Overview', description: 'Key metrics at a glance', roles: ['student', 'teacher'] },
   { id: 'assignments', label: 'Assignments', description: 'Browse and submit coursework', roles: ['student', 'teacher'] },
   { id: 'submissions', label: 'My Submissions', description: 'Track feedback in real-time', roles: ['student'] },
   { id: 'teacher', label: 'Teacher Center', description: 'Manage classes and insights', roles: ['teacher'] }
@@ -56,7 +55,7 @@ function getSubmissionStatusInfo(submission) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState('assignments');
   const [assignments, setAssignments] = useState([]);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [submissions, setSubmissions] = useState([]);
@@ -83,7 +82,7 @@ function App() {
     if (token && storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
-      setActiveSection(parsedUser.role === 'teacher' ? 'overview' : 'assignments');
+      setActiveSection(parsedUser.role === 'teacher' ? 'teacher' : 'assignments');
       hydrateData(parsedUser);
     }
   }, []);
@@ -121,7 +120,7 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       setUser(userData);
-      setActiveSection('overview');
+      setActiveSection('assignments');
       setStatusMessage({ type: 'success', text: `Welcome back, ${userData.email.split('@')[0]}!` });
       return { success: true };
     } catch (error) {
@@ -142,7 +141,7 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       setUser(userData);
-      setActiveSection('overview');
+      setActiveSection('assignments');
       setStatusMessage({ type: 'success', text: 'Your account is ready. Explore your dashboard!' });
       return { success: true };
     } catch (error) {
@@ -161,7 +160,7 @@ function App() {
     setSubmissions([]);
     setAssignmentTemplates([]);
     setShowCreateAssignment(false);
-    setActiveSection('overview');
+    setActiveSection('assignments');
   };
 
   const submitAssignment = async (assignmentId, file) => {
@@ -254,17 +253,6 @@ function App() {
     }
   };
 
-  const stats = useMemo(() => {
-    const totalAssignments = assignments.length;
-    const totalSubmissions = submissions.length;
-    const queuedSubmissions = submissions.filter((item) => item.status === 'queued').length;
-
-    return [
-      { label: 'Assignments', value: totalAssignments, caption: 'Available courses' },
-      { label: 'Active Submissions', value: queuedSubmissions, caption: 'Awaiting evaluation' },
-      { label: 'Total Submissions', value: totalSubmissions, caption: 'Your activity log' }
-    ];
-  }, [assignments, submissions]);
 
   if (!user) {
     return (
@@ -292,10 +280,6 @@ function App() {
         </MessageBanner>
       )}
 
-      {activeSection === 'overview' && (
-        <OverviewSection stats={stats} assignments={assignments} submissions={submissions} />
-      )}
-
       {activeSection === 'assignments' && (
         <AssignmentsSection
           assignments={assignments}
@@ -303,6 +287,9 @@ function App() {
           onSelectAssignment={setSelectedAssignment}
           onSubmit={submitAssignment}
           loading={loading}
+          user={user}
+          onCreateAssignment={openCreateAssignmentModal}
+          submissions={submissions}
         />
       )}
 
@@ -314,7 +301,6 @@ function App() {
         <TeacherSection
           assignments={assignments}
           submissions={submissions}
-          onCreateAssignment={openCreateAssignmentModal}
         />
       )}
       </AppLayout>
@@ -559,65 +545,15 @@ function AppLayout({ user, activeSection, navItems, onChangeSection, onLogout, c
   );
 }
 
-function OverviewSection({ stats, assignments, submissions }) {
-  return (
-    <div className="space-y">
-      <section className="stat-grid">
-        {stats.map((stat) => (
-          <div key={stat.label} className="stat-card">
-            <h3>{stat.label}</h3>
-            <p className="stat-value">{stat.value}</p>
-            <span>{stat.caption}</span>
-          </div>
-        ))}
-      </section>
-
-      <section className="card highlighted">
-        <div>
-          <h2>Continue your learning journey</h2>
-          <p>Pick up where you left off and keep your momentum going.</p>
-        </div>
-        <div className="progress-pills">
-          {assignments.map((assignment) => (
-            <span key={assignment.id} className="badge badge-soft">
-              {assignment.title}
-            </span>
-          ))}
-          {assignments.length === 0 && <span>No assignments available yet.</span>}
-        </div>
-      </section>
-
-      <section className="card">
-        <h2>Recent submissions</h2>
-        {submissions.length === 0 ? (
-          <EmptyState
-            title="No submissions yet"
-            description="Submit your first assignment to see feedback and automated scoring results here."
-          />
-        ) : (
-          <ul className="timeline">
-            {submissions.slice(0, 5).map((submission) => (
-              <li key={submission.id}>
-                <div>
-                  <strong>Submission #{submission.id}</strong>
-                  <p>{new Date(submission.createdAt).toLocaleString()}</p>
-                </div>
-                <StatusPill submission={submission} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
-  );
-}
-
 function AssignmentsSection({
   assignments,
   selectedAssignment,
   onSelectAssignment,
   onSubmit,
-  loading
+  loading,
+  user,
+  onCreateAssignment,
+  submissions
 }) {
   const [file, setFile] = useState(null);
   const [localMessage, setLocalMessage] = useState(null);
@@ -628,10 +564,21 @@ function AssignmentsSection({
     }
   }, [assignments, selectedAssignment, onSelectAssignment]);
 
+  // Calculate submission count for selected assignment
+  const submissionCount = selectedAssignment 
+    ? submissions.filter(s => s.assignmentId === selectedAssignment.id).length
+    : 0;
+  const canSubmit = submissionCount < 2;
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!file || !selectedAssignment) {
       setLocalMessage({ type: 'error', text: 'Select an assignment and upload a ZIP file.' });
+      return;
+    }
+
+    if (!canSubmit) {
+      setLocalMessage({ type: 'error', text: 'Maximum submission limit reached. You can only submit 2 times per assignment.' });
       return;
     }
 
@@ -645,10 +592,16 @@ function AssignmentsSection({
   };
 
   return (
-    <div className="two-column">
+    <div className={user?.role === 'teacher' ? '' : 'two-column'}>
       <div className="card assignments-list">
-        <h2>Assignments</h2>
-        <p>Select a project to view details and submit your work.</p>
+        <h2 style={{ margin: '0 0 1rem 0' }}>Assignments</h2>
+        {user?.role === 'teacher' && onCreateAssignment && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <PrimaryButton onClick={onCreateAssignment}>
+              + Create assignment
+            </PrimaryButton>
+          </div>
+        )}
         <div className="assignment-items">
           {assignments.map((assignment) => (
             <button
@@ -674,59 +627,70 @@ function AssignmentsSection({
         </div>
       </div>
 
-      <div className="card submission-panel">
-        {selectedAssignment ? (
-          <>
-            <header>
-              <h2>{selectedAssignment.title}</h2>
-              <p>{selectedAssignment.description}</p>
-            </header>
-            {Array.isArray(selectedAssignment.details) && selectedAssignment.details.length > 0 && (
-              <div className="assignment-brief">
-                <h3>Assignment brief</h3>
+      {user?.role !== 'teacher' && (
+        <div className="card submission-panel">
+          {selectedAssignment ? (
+            <>
+              <header>
+                <h2>{selectedAssignment.title}</h2>
+                <p>{selectedAssignment.description}</p>
+              </header>
+              {Array.isArray(selectedAssignment.details) && selectedAssignment.details.length > 0 && (
+                <div className="assignment-brief">
+                  <h3>Assignment brief</h3>
+                  <ul>
+                    {selectedAssignment.details.map((detail, index) => (
+                      <li key={index}>{detail}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="submission-guidelines">
+                <h3>Submission guidelines</h3>
                 <ul>
-                  {selectedAssignment.details.map((detail, index) => (
-                    <li key={index}>{detail}</li>
-                  ))}
+                  <li>Package your solution in a single ZIP file.</li>
+                  <li>Ensure your main entry point matches the assignment requirements.</li>
+                  <li>Include documentation or README if necessary.</li>
+                  <li><strong>Important:</strong> You can submit a maximum of 2 times per assignment.</li>
                 </ul>
+                {submissionCount > 0 && (
+                  <p style={{ marginTop: '0.75rem', color: submissionCount >= 2 ? '#dc2626' : '#64748b', fontWeight: submissionCount >= 2 ? 'bold' : 'normal' }}>
+                    {submissionCount >= 2 
+                      ? '⚠️ Maximum submission limit reached (2/2). You cannot submit again for this assignment.'
+                      : `Submissions used: ${submissionCount}/2`
+                    }
+                  </p>
+                )}
               </div>
-            )}
-            <div className="submission-guidelines">
-              <h3>Submission guidelines</h3>
-              <ul>
-                <li>Package your solution in a single ZIP file.</li>
-                <li>Ensure your main entry point matches the assignment requirements.</li>
-                <li>Include documentation or README if necessary.</li>
-              </ul>
-            </div>
 
-            <form className="upload-form" onSubmit={handleSubmit}>
-              <label className="file-input">
-                <span>{file ? file.name : 'Upload ZIP archive'}</span>
-                <input
-                  type="file"
-                  accept=".zip"
-                  onChange={(event) => setFile(event.target.files[0])}
-                />
-              </label>
-              <PrimaryButton type="submit" disabled={loading}>
-                {loading ? 'Submitting…' : 'Submit assignment'}
-              </PrimaryButton>
-            </form>
+              <form className="upload-form" onSubmit={handleSubmit}>
+                <label className="file-input">
+                  <span>{file ? file.name : 'Upload ZIP archive'}</span>
+                  <input
+                    type="file"
+                    accept=".zip"
+                    onChange={(event) => setFile(event.target.files[0])}
+                  />
+                </label>
+                <PrimaryButton type="submit" disabled={loading || !canSubmit}>
+                  {loading ? 'Submitting…' : canSubmit ? 'Submit assignment' : 'Submission limit reached'}
+                </PrimaryButton>
+              </form>
 
-            {localMessage && (
-              <MessageBanner type={localMessage.type} onClose={() => setLocalMessage(null)}>
-                {localMessage.text}
-              </MessageBanner>
-            )}
-          </>
-        ) : (
-          <EmptyState
-            title="Choose an assignment"
-            description="Select an assignment from the list to review requirements and upload your solution."
-          />
-        )}
-      </div>
+              {localMessage && (
+                <MessageBanner type={localMessage.type} onClose={() => setLocalMessage(null)}>
+                  {localMessage.text}
+                </MessageBanner>
+              )}
+            </>
+          ) : (
+            <EmptyState
+              title="Choose an assignment"
+              description="Select an assignment from the list to review requirements and upload your solution."
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -775,7 +739,7 @@ function SubmissionsSection({ submissions, assignments }) {
   );
 }
 
-function TeacherSection({ assignments, submissions, onCreateAssignment }) {
+function TeacherSection({ assignments, submissions }) {
   const lookupTitle = (assignmentId) =>
     assignments.find((assignment) => assignment.id === assignmentId)?.title || 'Assignment';
   
@@ -783,13 +747,6 @@ function TeacherSection({ assignments, submissions, onCreateAssignment }) {
   const uniqueStudents = new Set(submissions.map(s => s.userEmail || s.userId)).size;
   const totalAssignments = assignments.length;
   const totalSubmissions = submissions.length;
-  const gradedSubmissions = submissions.filter(s => typeof s.score === 'number');
-  const completedSubmissions = gradedSubmissions.length;
-  const averageScore = completedSubmissions > 0
-    ? Math.round(
-        (gradedSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / completedSubmissions) * 100
-      )
-    : 0;
 
   return (
     <div className="space-y">
@@ -808,18 +765,6 @@ function TeacherSection({ assignments, submissions, onCreateAssignment }) {
           <h3>Total submissions</h3>
           <p className="stat-value">{totalSubmissions}</p>
           <span>Pending and graded</span>
-        </div>
-        <div className="stat-card">
-          <h3>Average score</h3>
-          <p className="stat-value">{averageScore}%</p>
-          <span>Across all completed submissions</span>
-        </div>
-        <div className="stat-card teacher-create">
-          <h3>Assignments</h3>
-          <p className="stat-value">{totalAssignments}</p>
-          <button className="create-assignment-btn" onClick={onCreateAssignment}>
-            <span>+ Create assignment</span>
-          </button>
         </div>
       </section>
 
@@ -860,21 +805,6 @@ function TeacherSection({ assignments, submissions, onCreateAssignment }) {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="card highlighted">
-        <h2>Insights snapshot</h2>
-        <ul className="insights-list">
-          <li>
-            <strong>{completedSubmissions} of {totalSubmissions}</strong> submissions have been graded.
-          </li>
-          <li>
-            Average score: <strong>{averageScore}%</strong> across all completed submissions.
-          </li>
-          <li>
-            <strong>Recommended action:</strong> Review pending submissions and provide feedback to students.
-          </li>
-        </ul>
       </section>
     </div>
   );

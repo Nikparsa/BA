@@ -23,6 +23,12 @@
       "email": "student2@fh.com",
       "password": "123456",
       "role": "student"
+    },
+    {
+      "id": 5,
+      "email": "student12@fh.com",
+      "password": "123456",
+      "role": "student"
     }
   ],
   "assignments": [
@@ -418,6 +424,30 @@
       "filename": "1763999455283-fizzbuzz_100p.zip",
       "status": "completed",
       "createdAt": "2025-11-24T15:50:55.294Z"
+    },
+    {
+      "id": 44,
+      "userId": 1,
+      "assignmentId": 1,
+      "filename": "1766081514769-fizzbuzz_17p.zip",
+      "status": "failed",
+      "createdAt": "2025-12-18T18:11:54.777Z"
+    },
+    {
+      "id": 45,
+      "userId": 5,
+      "assignmentId": 1,
+      "filename": "1766082137500-fizzbuzz_50p.zip",
+      "status": "failed",
+      "createdAt": "2025-12-18T18:22:17.503Z"
+    },
+    {
+      "id": 46,
+      "userId": 5,
+      "assignmentId": 1,
+      "filename": "1766082170531-fizzbuzz_67p.zip",
+      "status": "failed",
+      "createdAt": "2025-12-18T18:22:50.534Z"
     }
   ],
   "results": [
@@ -807,6 +837,33 @@
       "passedTests": 6,
       "feedback": "All 6 tests passed!",
       "createdAt": "2025-11-24T15:51:00.488Z"
+    },
+    {
+      "id": 44,
+      "submissionId": 44,
+      "score": 0.16666666666666666,
+      "totalTests": 6,
+      "passedTests": 1,
+      "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_returns_number: E       AssertionError: assert 'wrong' == '1'\n  • test_fizzbuzz.py::test_returns_fizz: E       AssertionError: assert 'wrong' == 'Fizz'\n  • test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'",
+      "createdAt": "2025-12-18T18:12:00.135Z"
+    },
+    {
+      "id": 45,
+      "submissionId": 45,
+      "score": 0.5,
+      "totalTests": 6,
+      "passedTests": 3,
+      "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_returns_fizzbuzz: E       AssertionError: assert 'wrong' == 'FizzBuzz'\n  • test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
+      "createdAt": "2025-12-18T18:22:20.001Z"
+    },
+    {
+      "id": 46,
+      "submissionId": 46,
+      "score": 0.6666666666666666,
+      "totalTests": 6,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
+      "createdAt": "2025-12-18T18:22:52.862Z"
     }
   ]
 }

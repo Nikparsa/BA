@@ -593,13 +593,17 @@ textarea:focus {
 }
 
 .assignments-list {
-  display: grid;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .assignment-items {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .assignment-item {
@@ -613,6 +617,9 @@ textarea:focus {
   gap: 1rem;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .assignment-item h3 {
