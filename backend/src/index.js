@@ -8,8 +8,9 @@ const { v4: uuidv4 } = require('uuid');
 const { detectLanguage, getLanguageConfig, getSupportedLanguages } = require('./lib/language-detector.js');
 
 const app = express();
-const PORT = 3000;
-const JWT_SECRET = 'dev_secret_key';
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+const RUNNER_URL = process.env.RUNNER_URL || 'http://localhost:5001';
 
 // Middleware
 app.use(cors());
@@ -135,7 +136,7 @@ function sanitizeSlug(value = '') {
     .replace(/^-+|-+$/g, '');
 }
 
-// Multer for file uploads 
+// Multer for file uploads
 // (Uploaded files are automatically renamed with a timestamp prefix 
 // to ensure unique filenames and prevent conflicts.)
 const storage = multer.diskStorage({
@@ -334,7 +335,7 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
 // in the database, ensuring sequential numbering (e.g., #1, #2, #3...).
 // The submission is immediately added to the database and saved to disk.
 // Status is set to 'queued' until the runner processes it.
-
+  
   const submission = {
     id: database.submissions.length + 1,
     userId: req.user.id,
@@ -348,7 +349,7 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
   saveDatabase();
   
   // Send to runner
-  fetch('http://localhost:5001/run', {
+  fetch(`${RUNNER_URL}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -370,7 +371,7 @@ app.get('/api/submissions', authRequired, (req, res) => {
   const submissionsToReturn = req.user.role === 'teacher'
     ? database.submissions
     : database.submissions.filter(s => s.userId === req.user.id);
-
+  
     // add each user email to database.users  
   const enrichedSubmissions = submissionsToReturn
     .map(submission => {
@@ -445,7 +446,8 @@ app.get('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`Backend server running on http://${HOST}:${PORT}`);
+  console.log(`API available at http://${HOST}:${PORT}/api`);
 });

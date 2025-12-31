@@ -10,8 +10,8 @@ from language_plugins import plugin_manager
 
 app = Flask(__name__)
 
-PORT = 5001
-BACKEND_URL = 'http://localhost:3000/api'
+PORT = int(os.getenv('PORT', 5001))
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:3000/api')
 
 # Get absolute paths relative to this file
 RUNNER_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -224,7 +224,8 @@ def run():
         print(f"DEBUG: Test result: {test_result}")  # Debug
 
         # Prepare callback data
-        callback_data = {
+        cal
+        lback_data = {
             'submissionId': submission_id,
             'status': 'completed' if test_result.get('success', False) else 'failed',
             'score': test_result.get('score', 0.0),

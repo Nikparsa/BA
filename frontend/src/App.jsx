@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+axios.defaults.baseURL = API_BASE_URL;
 
 const NAV_ITEMS = [
   { id: 'assignments', label: 'Assignments', description: 'Browse and submit coursework', roles: ['student', 'teacher'] },
@@ -628,31 +629,31 @@ function AssignmentsSection({
       </div>
 
       {user?.role !== 'teacher' && (
-        <div className="card submission-panel">
-          {selectedAssignment ? (
-            <>
-              <header>
-                <h2>{selectedAssignment.title}</h2>
-                <p>{selectedAssignment.description}</p>
-              </header>
-              {Array.isArray(selectedAssignment.details) && selectedAssignment.details.length > 0 && (
-                <div className="assignment-brief">
-                  <h3>Assignment brief</h3>
-                  <ul>
-                    {selectedAssignment.details.map((detail, index) => (
-                      <li key={index}>{detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="submission-guidelines">
-                <h3>Submission guidelines</h3>
+      <div className="card submission-panel">
+        {selectedAssignment ? (
+          <>
+            <header>
+              <h2>{selectedAssignment.title}</h2>
+              <p>{selectedAssignment.description}</p>
+            </header>
+            {Array.isArray(selectedAssignment.details) && selectedAssignment.details.length > 0 && (
+              <div className="assignment-brief">
+                <h3>Assignment brief</h3>
                 <ul>
-                  <li>Package your solution in a single ZIP file.</li>
-                  <li>Ensure your main entry point matches the assignment requirements.</li>
-                  <li>Include documentation or README if necessary.</li>
-                  <li><strong>Important:</strong> You can submit a maximum of 2 times per assignment.</li>
+                  {selectedAssignment.details.map((detail, index) => (
+                    <li key={index}>{detail}</li>
+                  ))}
                 </ul>
+              </div>
+            )}
+            <div className="submission-guidelines">
+              <h3>Submission guidelines</h3>
+              <ul>
+                <li>Package your solution in a single ZIP file.</li>
+                <li>Ensure your main entry point matches the assignment requirements.</li>
+                <li>Include documentation or README if necessary.</li>
+                  <li><strong>Important:</strong> You can submit a maximum of 2 times per assignment.</li>
+              </ul>
                 {submissionCount > 0 && (
                   <p style={{ marginTop: '0.75rem', color: submissionCount >= 2 ? '#dc2626' : '#64748b', fontWeight: submissionCount >= 2 ? 'bold' : 'normal' }}>
                     {submissionCount >= 2 
@@ -661,35 +662,35 @@ function AssignmentsSection({
                     }
                   </p>
                 )}
-              </div>
+            </div>
 
-              <form className="upload-form" onSubmit={handleSubmit}>
-                <label className="file-input">
-                  <span>{file ? file.name : 'Upload ZIP archive'}</span>
-                  <input
-                    type="file"
-                    accept=".zip"
-                    onChange={(event) => setFile(event.target.files[0])}
-                  />
-                </label>
+            <form className="upload-form" onSubmit={handleSubmit}>
+              <label className="file-input">
+                <span>{file ? file.name : 'Upload ZIP archive'}</span>
+                <input
+                  type="file"
+                  accept=".zip"
+                  onChange={(event) => setFile(event.target.files[0])}
+                />
+              </label>
                 <PrimaryButton type="submit" disabled={loading || !canSubmit}>
                   {loading ? 'Submitting…' : canSubmit ? 'Submit assignment' : 'Submission limit reached'}
-                </PrimaryButton>
-              </form>
+              </PrimaryButton>
+            </form>
 
-              {localMessage && (
-                <MessageBanner type={localMessage.type} onClose={() => setLocalMessage(null)}>
-                  {localMessage.text}
-                </MessageBanner>
-              )}
-            </>
-          ) : (
-            <EmptyState
-              title="Choose an assignment"
-              description="Select an assignment from the list to review requirements and upload your solution."
-            />
-          )}
-        </div>
+            {localMessage && (
+              <MessageBanner type={localMessage.type} onClose={() => setLocalMessage(null)}>
+                {localMessage.text}
+              </MessageBanner>
+            )}
+          </>
+        ) : (
+          <EmptyState
+            title="Choose an assignment"
+            description="Select an assignment from the list to review requirements and upload your solution."
+          />
+        )}
+      </div>
       )}
     </div>
   );

@@ -29,6 +29,12 @@
       "email": "student12@fh.com",
       "password": "123456",
       "role": "student"
+    },
+    {
+      "id": 6,
+      "email": "student23@fh.com",
+      "password": "123456",
+      "role": "student"
     }
   ],
   "assignments": [
@@ -448,6 +454,14 @@
       "filename": "1766082170531-fizzbuzz_67p.zip",
       "status": "failed",
       "createdAt": "2025-12-18T18:22:50.534Z"
+    },
+    {
+      "id": 47,
+      "userId": 6,
+      "assignmentId": 1,
+      "filename": "1766158757317-fizzbuzz_17p.zip",
+      "status": "failed",
+      "createdAt": "2025-12-19T15:39:17.323Z"
     }
   ],
   "results": [
@@ -864,6 +878,15 @@
       "passedTests": 4,
       "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
       "createdAt": "2025-12-18T18:22:52.862Z"
+    },
+    {
+      "id": 47,
+      "submissionId": 47,
+      "score": 0.16666666666666666,
+      "totalTests": 6,
+      "passedTests": 1,
+      "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_returns_number: E       AssertionError: assert 'wrong' == '1'\n  • test_fizzbuzz.py::test_returns_fizz: E       AssertionError: assert 'wrong' == 'Fizz'\n  • test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'",
+      "createdAt": "2025-12-19T15:39:21.440Z"
     }
   ]
 }
