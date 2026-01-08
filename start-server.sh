@@ -51,6 +51,10 @@ fi
 
 # Build frontend
 echo -e "${CYAN}Building frontend...${NC}"
+# Fix permissions for node_modules binaries
+if [ -d "node_modules/.bin" ]; then
+    chmod +x node_modules/.bin/* 2>/dev/null || true
+fi
 # Get server IP for API URL
 SERVER_IP=$(hostname -I | awk '{print $1}')
 if [ -z "$SERVER_IP" ]; then
