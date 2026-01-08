@@ -70,7 +70,8 @@ fi
 # Setup Python virtual environment
 echo -e "${CYAN}Setting up Python virtual environment...${NC}"
 cd ../runner
-if [ ! -d ".venv" ]; then
+if [ ! -d ".venv" ] || [ ! -f ".venv/bin/activate" ]; then
+    rm -rf .venv
     if ! python3 -m venv .venv; then
         echo -e "${RED}ERROR: Failed to create virtual environment${NC}"
         exit 1
@@ -80,10 +81,10 @@ fi
 # Install Python dependencies
 echo -e "${CYAN}Installing Python dependencies...${NC}"
 source .venv/bin/activate
-if ! pip install --upgrade pip --quiet; then
+if ! python3 -m pip install --upgrade pip --quiet; then
     echo -e "${YELLOW}Warning: Failed to upgrade pip, continuing...${NC}"
 fi
-if ! pip install -r requirements.txt; then
+if ! python3 -m pip install -r requirements.txt; then
     echo -e "${RED}ERROR: Failed to install Python dependencies${NC}"
     exit 1
 fi
