@@ -438,27 +438,21 @@ app.post('/api/runner/callback', (req, res) => {
   res.json({ ok: true });
 });
 
-// Serve React app
+// Serve React app - handle root and all other routes
+app.get('/', (req, res) => {
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath);
+});
+
 app.get('*', (req, res) => {
-  const projectRoot = path.resolve(__dirname, '../..');
-  const indexPath = path.join(projectRoot, 'frontend', 'dist', 'index.html');
-  console.log('Request for:', req.path);
-  console.log('Looking for index.html at:', indexPath);
-  console.log('File exists:', fs.existsSync(indexPath));
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.json({
-      message: 'Frontend not built. Run: cd frontend && npm run build',
-      api: 'Backend API is running at /api',
-      debug: {
-        projectRoot,
-        indexPath,
-        exists: fs.existsSync(indexPath),
-        __dirname: __dirname
-      }
-    });
+  // Skip API routes
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
   }
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  console.log('Catch-all route - serving index.html from:', indexPath);
+  res.sendFile(indexPath);
 });
 
 // Start server
