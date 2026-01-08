@@ -15,7 +15,13 @@ const RUNNER_URL = process.env.RUNNER_URL || 'http://localhost:5001';
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+// Frontend path - __dirname is backend/src, so go up two levels to project root
+const projectRoot = path.resolve(__dirname, '../..');
+const frontendDistPath = path.join(projectRoot, 'frontend', 'dist');
+console.log('Serving frontend from:', frontendDistPath);
+console.log('Frontend dist exists:', fs.existsSync(frontendDistPath));
+console.log('Frontend index.html exists:', fs.existsSync(path.join(frontendDistPath, 'index.html')));
+app.use(express.static(frontendDistPath));
 
 // Create data directories
 const dataDir = path.join(__dirname, 'data');
@@ -434,13 +440,23 @@ app.post('/api/runner/callback', (req, res) => {
 
 // Serve React app
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
+  const projectRoot = path.resolve(__dirname, '../..');
+  const indexPath = path.join(projectRoot, 'frontend', 'dist', 'index.html');
+  console.log('Request for:', req.path);
+  console.log('Looking for index.html at:', indexPath);
+  console.log('File exists:', fs.existsSync(indexPath));
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
     res.json({
       message: 'Frontend not built. Run: cd frontend && npm run build',
-      api: 'Backend API is running at /api'
+      api: 'Backend API is running at /api',
+      debug: {
+        projectRoot,
+        indexPath,
+        exists: fs.existsSync(indexPath),
+        __dirname: __dirname
+      }
     });
   }
 });
