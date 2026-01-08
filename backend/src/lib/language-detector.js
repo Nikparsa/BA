@@ -26,7 +26,7 @@ const LANGUAGE_CONFIGS = {
  * @param {Array} files - Array of file objects with name/path properties
  * @returns {Object} Language configuration or null if not detected
  */
-export function detectLanguage(files) {
+function detectLanguage(files) {
   if (!files || files.length === 0) {
     return null;
   }
@@ -73,7 +73,7 @@ function getFileExtension(filename) {
  * @param {string} language
  * @returns {Object|null} Language configuration
  */
-export function getLanguageConfig(language) {
+function getLanguageConfig(language) {
   return LANGUAGE_CONFIGS[language] || null;
 }
 
@@ -81,7 +81,7 @@ export function getLanguageConfig(language) {
  * Get all supported languages
  * @returns {Array} Array of supported language names
  */
-export function getSupportedLanguages() {
+function getSupportedLanguages() {
   return Object.keys(LANGUAGE_CONFIGS);
 }
 
@@ -90,7 +90,7 @@ export function getSupportedLanguages() {
  * @param {string} language
  * @returns {boolean}
  */
-export function isLanguageSupported(language) {
+function isLanguageSupported(language) {
   return language in LANGUAGE_CONFIGS;
 }
 
@@ -99,7 +99,7 @@ export function isLanguageSupported(language) {
  * @param {string} language
  * @returns {Array} Array of file extensions
  */
-export function getLanguageExtensions(language) {
+function getLanguageExtensions(language) {
   const config = getLanguageConfig(language);
   return config ? config.extensions : [];
 }
@@ -110,7 +110,7 @@ export function getLanguageExtensions(language) {
  * @param {string} language - Expected language
  * @returns {Object} Validation result with isValid and errors
  */
-export function validateSubmission(files, language) {
+function validateSubmission(files, language) {
   const config = getLanguageConfig(language);
   if (!config) {
     return {
@@ -155,9 +155,14 @@ export function validateSubmission(files, language) {
   };
 }
 
-
-
-
+module.exports = {
+  detectLanguage,
+  getLanguageConfig,
+  getSupportedLanguages,
+  isLanguageSupported,
+  getLanguageExtensions,
+  validateSubmission
+};
 
 
 
