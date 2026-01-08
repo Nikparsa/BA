@@ -15,7 +15,7 @@ const RUNNER_URL = process.env.RUNNER_URL || 'http://localhost:5001';
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Create data directories
 const dataDir = path.join(__dirname, 'data');
@@ -434,7 +434,7 @@ app.post('/api/runner/callback', (req, res) => {
 
 // Serve React app
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+  const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
