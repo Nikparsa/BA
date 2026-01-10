@@ -463,6 +463,15 @@
       "status": "failed",
       "createdAt": "2026-01-10T14:13:47.891Z",
       "score": 0.25
+    },
+    {
+      "id": 49,
+      "userId": 5,
+      "assignmentId": 2,
+      "filename": "1768058114695-csv_100p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T15:15:14.700Z",
+      "score": 1
     }
   ],
   "results": [
@@ -897,6 +906,15 @@
       "passedTests": 1,
       "feedback": "Failed tests:\n  • test_csv_stats.py::test_calculate_median: E       AssertionError: assert 999 == 3.0\n  • test_csv_stats.py::test_calculate_std: C:\\FH\\semester_5\\ProjektArbeit\\BA\\tasks\\csv-stats\\tests\\test_csv_stats.py:34: AssertionError\n  • test_csv_stats.py::test_empty_data: E       AssertionError: assert 999 == 0",
       "createdAt": "2026-01-10T14:13:56.232Z"
+    },
+    {
+      "id": 49,
+      "submissionId": 49,
+      "score": 1,
+      "totalTests": 4,
+      "passedTests": 4,
+      "feedback": "All 4 tests passed!",
+      "createdAt": "2026-01-10T15:15:20.109Z"
     }
   ]
 }
