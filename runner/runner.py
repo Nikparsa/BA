@@ -190,17 +190,23 @@ def run_pytest(workdir, test_dir):
             print(f"DEBUG: Pytest stderr: {result.stderr[:500] if result.stderr else 'None'}")
         
         # Calculate score - ensure it's a float between 0 and 1
+        # CRITICAL: Only calculate if we have tests
         if total_tests > 0:
             score = float(passed_tests) / float(total_tests)
+            print(f"DEBUG: Score calculation: {passed_tests} / {total_tests} = {score}")
         else:
             score = 0.0
-            print(f"WARNING: total_tests is 0, cannot calculate score! Setting to 0.0")
+            print(f"ERROR: total_tests is 0! Cannot calculate score. Setting to 0.0")
+            print(f"ERROR: This means no tests were found or counted!")
         
         # Ensure score is between 0 and 1
         score = max(0.0, min(1.0, score))
         
-        print(f"DEBUG: Calculated score: {score} (passed={passed_tests}, total={total_tests})")
-        print(f"DEBUG: Score as percentage: {score * 100}%")
+        print(f"DEBUG: ===== FINAL SCORE =====")
+        print(f"DEBUG: Score: {score} ({score * 100}%)")
+        print(f"DEBUG: passed_tests: {passed_tests}")
+        print(f"DEBUG: total_tests: {total_tests}")
+        print(f"DEBUG: =======================")
         
         return {
             'success': result.returncode == 0,
