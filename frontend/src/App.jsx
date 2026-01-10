@@ -146,16 +146,26 @@ function App() {
   const hydrateData = async (userOverride = null) => {
     try {
       const [assignmentsResponse, submissionsResponse] = await Promise.all([
-        axios.get('/assignments'),
+        axios.get('/assignments').catch(err => {
+          console.error('Failed to load assignments:', err.response?.data || err.message);
+          // Return empty array if assignments fail to load
+          return { data: [] };
+        }),
         axios.get('/submissions').catch(() => ({ data: [] })) // Fallback if no submissions
       ]);
-      setAssignments(assignmentsResponse.data);
-      setSubmissions(submissionsResponse.data);
-      if (!selectedAssignment && assignmentsResponse.data.length) {
+      setAssignments(assignmentsResponse.data || []);
+      setSubmissions(submissionsResponse.data || []);
+      if (!selectedAssignment && assignmentsResponse.data && assignmentsResponse.data.length) {
         setSelectedAssignment(assignmentsResponse.data[0]);
+      }
+      // Log if no assignments found
+      if (!assignmentsResponse.data || assignmentsResponse.data.length === 0) {
+        console.warn('No assignments found. User might not be authenticated or database is empty.');
       }
     } catch (error) {
       console.error('Failed to load data:', error);
+      setAssignments([]);
+      setSubmissions([]);
     }
   };
 
