@@ -101,17 +101,18 @@ echo -e "${YELLOW}Starting services...${NC}"
 echo ""
 
 # Get environment variables or use defaults
-PORT=${PORT:-3000}
-JWT_SECRET=${JWT_SECRET:-"production_secret_key_change_me"}
-RUNNER_URL=${RUNNER_URL:-"http://localhost:5001"}
-BACKEND_URL=${BACKEND_URL:-"http://localhost:3000/api"}
-RUNNER_PORT=${RUNNER_PORT:-5001}
+export PORT=${PORT:-3000}
+export JWT_SECRET=${JWT_SECRET:-"production_secret_key_change_me"}
+export RUNNER_URL=${RUNNER_URL:-"http://localhost:5001"}
+export BACKEND_URL=${BACKEND_URL:-"http://localhost:3000/api"}
+export RUNNER_PORT=${RUNNER_PORT:-5001}
 
 # Create logs directory
 mkdir -p logs
 
 # Start Backend
 echo -e "${CYAN}Starting Backend on port $PORT...${NC}"
+echo -e "${CYAN}Backend will use RUNNER_URL: $RUNNER_URL${NC}"
 cd backend
 nohup node src/index.js > ../logs/backend.log 2>&1 &
 BACKEND_PID=$!
@@ -121,9 +122,10 @@ sleep 3
 
 # Start Runner
 echo -e "${CYAN}Starting Runner on port $RUNNER_PORT...${NC}"
+echo -e "${CYAN}Runner will use BACKEND_URL: $BACKEND_URL${NC}"
 cd runner
 source .venv/bin/activate
-BACKEND_URL=$BACKEND_URL PORT=$RUNNER_PORT nohup python run.py > ../logs/runner.log 2>&1 &
+env BACKEND_URL="$BACKEND_URL" PORT="$RUNNER_PORT" nohup python run.py > ../logs/runner.log 2>&1 &
 RUNNER_PID=$!
 echo $RUNNER_PID > ../logs/runner.pid
 deactivate

@@ -512,6 +512,7 @@ app.post('/api/runner/callback', (req, res) => {
       console.log(`[CALLBACK] Updated existing result for submission ${submissionId}: score=${result.score}`);
     } else {
       // Create new result
+      // IMPORTANT: Always create result, even if score is 0 (0 is a valid score)
       result = {
         id: database.results.length + 1,
         submissionId: parseInt(submissionId),
@@ -521,6 +522,7 @@ app.post('/api/runner/callback', (req, res) => {
         feedback: feedback || '',
         createdAt: new Date().toISOString()
       };
+      console.log(`[CALLBACK] Creating result with score: ${result.score} (score param was: ${score})`);
       database.results.push(result);
       console.log(`[CALLBACK] Created new result for submission ${submissionId}: score=${result.score}`);
     }
@@ -558,4 +560,6 @@ const HOST = process.env.HOST || '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`Backend server running on http://${HOST}:${PORT}`);
   console.log(`API available at http://${HOST}:${PORT}/api`);
+  console.log(`RUNNER_URL configured as: ${RUNNER_URL}`);
+  console.log(`Callback endpoint ready at: http://${HOST}:${PORT}/api/runner/callback`);
 });
