@@ -426,7 +426,11 @@ app.get('/api/submissions', authRequired, (req, res) => {
       return {
         ...submission,
         // Use result.score if available, otherwise fall back to submission.score
-        score: result?.score !== undefined && result?.score !== null ? result.score : (submission.score !== undefined ? submission.score : undefined),
+        // IMPORTANT: Score 0 is valid and should be displayed
+        // Always return a number (0 is valid), never undefined
+        score: result?.score !== undefined && result?.score !== null 
+          ? result.score 
+          : (submission.score !== undefined && submission.score !== null ? submission.score : 0),
         totalTests: result?.totalTests,
         passedTests: result?.passedTests,
         feedback: result?.feedback,
@@ -481,10 +485,15 @@ app.post('/api/runner/callback', (req, res) => {
       } else {
         submission.status = status || 'failed';
       }
-      // Always save score if provided, even for failed status
-      if (score !== undefined && score !== null) {
-        submission.score = score;
+      // Always save score - even if 0 or failed status
+      // Score 0 is a valid score and should be saved and displayed
+      // IMPORTANT: Always set score, even if it's 0 (which is a valid score)
+      submission.score = score !== undefined && score !== null ? score : 0;
+      // Force score to be a number, not undefined
+      if (submission.score === undefined || submission.score === null) {
+        submission.score = 0;
       }
+      console.log(`[CALLBACK] Set submission ${submissionId} score to: ${submission.score} (from param: ${score}, type: ${typeof score})`);
       console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
     } else {
       console.error(`[CALLBACK] ERROR: Submission ${submissionId} not found in database`);
@@ -493,38 +502,33 @@ app.post('/api/runner/callback', (req, res) => {
     
     // Create or update result
     // IMPORTANT: Always save result even if status is 'failed' - the score might still be valid
+    // Score 0 is valid and should be saved and displayed
     let result = database.results.find(r => r.submissionId === parseInt(submissionId));
+    const finalScore = score !== undefined && score !== null ? score : 0;
+    const finalTotalTests = totalTests !== undefined && totalTests !== null ? totalTests : 0;
+    const finalPassedTests = passedTests !== undefined && passedTests !== null ? passedTests : 0;
+    const finalFeedback = feedback || '';
+    
     if (result) {
-      // Update existing result
-      // Only update score if provided (score can be 0, which is valid)
-      if (score !== undefined && score !== null) {
-        result.score = score;
-      }
-      if (totalTests !== undefined && totalTests !== null) {
-        result.totalTests = totalTests;
-      }
-      if (passedTests !== undefined && passedTests !== null) {
-        result.passedTests = passedTests;
-      }
-      if (feedback !== undefined && feedback !== null) {
-        result.feedback = feedback;
-      }
-      console.log(`[CALLBACK] Updated existing result for submission ${submissionId}: score=${result.score}`);
+      // Update existing result - always update, even if values are 0
+      result.score = finalScore;
+      result.totalTests = finalTotalTests;
+      result.passedTests = finalPassedTests;
+      result.feedback = finalFeedback;
+      console.log(`[CALLBACK] Updated existing result for submission ${submissionId}: score=${result.score}, status=${status}`);
     } else {
-      // Create new result
-      // IMPORTANT: Always create result, even if score is 0 (0 is a valid score)
+      // Create new result - always create, even if score is 0
       result = {
         id: database.results.length + 1,
         submissionId: parseInt(submissionId),
-        score: score !== undefined && score !== null ? score : 0,
-        totalTests: totalTests !== undefined && totalTests !== null ? totalTests : 0,
-        passedTests: passedTests !== undefined && passedTests !== null ? passedTests : 0,
-        feedback: feedback || '',
+        score: finalScore,
+        totalTests: finalTotalTests,
+        passedTests: finalPassedTests,
+        feedback: finalFeedback,
         createdAt: new Date().toISOString()
       };
-      console.log(`[CALLBACK] Creating result with score: ${result.score} (score param was: ${score})`);
       database.results.push(result);
-      console.log(`[CALLBACK] Created new result for submission ${submissionId}: score=${result.score}`);
+      console.log(`[CALLBACK] Created new result for submission ${submissionId}: score=${result.score}, status=${status}`);
     }
     
     saveDatabase();
@@ -545,8 +549,9 @@ app.get('/', (req, res) => {
   res.sendFile(indexPath);
 });
 
+// IMPORTANT: Catch-all route must be LAST, after all API routes
 app.get('*', (req, res) => {
-  // Skip API routes
+  // Skip API routes - they should have been handled above
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
@@ -558,8 +563,10 @@ app.get('*', (req, res) => {
 // Start server
 const HOST = process.env.HOST || '0.0.0.0';
 app.listen(PORT, HOST, () => {
+  console.log(`=== BACKEND STARTED ===`);
   console.log(`Backend server running on http://${HOST}:${PORT}`);
   console.log(`API available at http://${HOST}:${PORT}/api`);
   console.log(`RUNNER_URL configured as: ${RUNNER_URL}`);
-  console.log(`Callback endpoint ready at: http://${HOST}:${PORT}/api/runner/callback`);
+  console.log(`Callback endpoint: POST http://${HOST}:${PORT}/api/runner/callback`);
+  console.log(`Listening on all interfaces (0.0.0.0) for callbacks from runner`);
 });

@@ -769,8 +769,8 @@ function SubmissionsSection({ submissions, assignments }) {
               <span>{new Date(submission.createdAt).toLocaleString()}</span>
               <StatusPill submission={submission} />
               <span>
-                {submission.score !== undefined && submission.score !== null ? (
-                  <strong>{Math.round(submission.score * 100)}%</strong>
+                {(submission.score !== undefined && submission.score !== null) || submission.score === 0 ? (
+                  <strong>{Math.round((submission.score || 0) * 100)}%</strong>
                 ) : (
                   <span style={{ color: '#999' }}>—</span>
                 )}
@@ -839,8 +839,8 @@ function TeacherSection({ assignments, submissions }) {
                 <span>{new Date(submission.createdAt).toLocaleString()}</span>
                 <StatusPill submission={submission} />
                 <span>
-                  {submission.score !== undefined && submission.score !== null ? (
-                    <strong>{Math.round(submission.score * 100)}%</strong>
+                  {(submission.score !== undefined && submission.score !== null) || submission.score === 0 ? (
+                    <strong>{Math.round((submission.score || 0) * 100)}%</strong>
                   ) : (
                     <span style={{ color: '#999' }}>—</span>
                   )}

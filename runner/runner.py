@@ -362,9 +362,13 @@ def run():
         shutil.rmtree(workdir, ignore_errors=True)
 
 if __name__ == '__main__':
+    print(f"=== RUNNER STARTED ===")
     print(f"Starting ACA Runner on port {PORT}")
+    print(f"BACKEND_URL configured as: {BACKEND_URL}")
+    print(f"Callback will be sent to: {BACKEND_URL}/runner/callback")
     # Debug: Print all registered routes
     print("DEBUG: Registered routes:")
     for rule in app.url_map.iter_rules():
         print(f"  {rule.rule} -> {rule.endpoint} [{', '.join(rule.methods)}]")
+    print(f"Runner listening on 0.0.0.0:{PORT}")
     app.run(host='0.0.0.0', port=PORT, debug=False)
