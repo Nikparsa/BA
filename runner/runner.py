@@ -87,10 +87,39 @@ def run_pytest(workdir, test_dir):
                 with open(report_path, 'r') as f:
                     report = json.load(f)
                 
+                print(f"DEBUG: Full JSON report structure: {json.dumps(report, indent=2)[:2000]}")
+                
                 summary = report.get('summary', {})
+                
+                # Try different possible structures for pytest-json-report
+                # Structure 1: report.summary.total, report.summary.passed, etc.
                 total_tests = summary.get('total', 0)
                 passed_tests = summary.get('passed', 0)
                 failed_tests = summary.get('failed', 0)
+                
+                # Structure 2: Maybe summary is directly the numbers?
+                if total_tests == 0 and isinstance(summary, dict):
+                    # Try alternative keys
+                    total_tests = summary.get('total_tests', summary.get('count', 0))
+                    passed_tests = summary.get('passed_tests', summary.get('passed_count', 0))
+                    failed_tests = summary.get('failed_tests', summary.get('failed_count', 0))
+                
+                # Structure 3: Maybe the structure is different?
+                if total_tests == 0:
+                    # Try report-level keys
+                    total_tests = report.get('total', report.get('total_tests', 0))
+                    passed_tests = report.get('passed', report.get('passed_tests', 0))
+                    failed_tests = report.get('failed', report.get('failed_tests', 0))
+                
+                # Count tests from the tests array if we still have 0
+                if total_tests == 0 and 'tests' in report:
+                    tests_list = report.get('tests', [])
+                    total_tests = len(tests_list)
+                    passed_tests = len([t for t in tests_list if t.get('outcome') == 'passed'])
+                    failed_tests = len([t for t in tests_list if t.get('outcome') == 'failed'])
+                
+                print(f"DEBUG: JSON Report Summary: total={total_tests}, passed={passed_tests}, failed={failed_tests}")
+                print(f"DEBUG: Full summary object: {summary}")
                 
                 # Generate feedback from failed tests
                 tests = report.get('tests', [])
@@ -123,6 +152,7 @@ def run_pytest(workdir, test_dir):
             print(f"DEBUG: Pytest stderr: {result.stderr[:500] if result.stderr else 'None'}")
         
         score = passed_tests / total_tests if total_tests > 0 else 0.0
+        print(f"DEBUG: Calculated score: {score} (passed={passed_tests}, total={total_tests})")
         
         return {
             'success': result.returncode == 0,
@@ -287,15 +317,27 @@ def run():
         # (could mean no tests found, parsing error, but pytest itself ran)
         callback_status = 'completed' if pytest_was_executed else 'failed'
         
+        score_value = test_result.get('score', 0.0)
+        total_tests_value = test_result.get('total_tests', 0)
+        passed_tests_value = test_result.get('passed_tests', 0)
+        
+        print(f"DEBUG: Preparing callback for submission {submission_id}")
+        print(f"DEBUG: Test result score: {score_value} (type: {type(score_value)})")
+        print(f"DEBUG: Test result total_tests: {total_tests_value}")
+        print(f"DEBUG: Test result passed_tests: {passed_tests_value}")
+        print(f"DEBUG: Full test_result: {test_result}")
+        
         callback_data = {
             'submissionId': submission_id,
             'status': callback_status,
-            'score': test_result.get('score', 0.0),
-            'totalTests': test_result.get('total_tests', 0),
-            'passedTests': test_result.get('passed_tests', 0),
+            'score': score_value,
+            'totalTests': total_tests_value,
+            'passedTests': passed_tests_value,
             'feedback': test_result.get('feedback', ''),
             'language': 'python'
         }
+        
+        print(f"DEBUG: Callback data score: {callback_data['score']}")
         
         print(f"DEBUG: Callback status: {callback_status} (tests executed: {pytest_was_executed}, total: {test_result.get('total_tests', 0)})")
 

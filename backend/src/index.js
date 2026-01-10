@@ -477,7 +477,14 @@ app.post('/api/runner/callback', (req, res) => {
   try {
     const { submissionId, status, score, totalTests, passedTests, feedback } = req.body;
     
-    console.log(`[CALLBACK] Received for submission ${submissionId}: status=${status}, score=${score}`);
+    console.log(`[CALLBACK] ===== RECEIVED CALLBACK =====`);
+    console.log(`[CALLBACK] Full request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`[CALLBACK] submissionId: ${submissionId} (type: ${typeof submissionId})`);
+    console.log(`[CALLBACK] status: ${status} (type: ${typeof status})`);
+    console.log(`[CALLBACK] score: ${score} (type: ${typeof score})`);
+    console.log(`[CALLBACK] totalTests: ${totalTests} (type: ${typeof totalTests})`);
+    console.log(`[CALLBACK] passedTests: ${passedTests} (type: ${typeof passedTests})`);
+    console.log(`[CALLBACK] feedback: ${feedback ? feedback.substring(0, 100) : 'none'}`);
     console.log(`[CALLBACK] Full body:`, JSON.stringify(req.body, null, 2));
     
     if (!submissionId) {
