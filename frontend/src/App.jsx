@@ -121,8 +121,22 @@ function App() {
   useEffect(() => {
     if (user) {
       hydrateData();
+      
+      // Auto-refresh submissions every 5 seconds when user is on submissions tab
+      // This ensures grades appear as soon as they're ready
+      const intervalId = setInterval(() => {
+        if (activeSection === 'submissions' || activeSection === 'teacher') {
+          axios.get('/submissions').then(response => {
+            setSubmissions(response.data);
+          }).catch(() => {
+            // Silently fail to avoid console spam
+          });
+        }
+      }, 5000);
+      
+      return () => clearInterval(intervalId);
     }
-  }, [user]);
+  }, [user, activeSection]);
 
   const hydrateData = async (userOverride = null) => {
     try {

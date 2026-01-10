@@ -425,7 +425,8 @@ app.get('/api/submissions', authRequired, (req, res) => {
       const user = database.users.find(u => u.id === submission.userId);
       return {
         ...submission,
-        score: result?.score,
+        // Use result.score if available, otherwise fall back to submission.score
+        score: result?.score !== undefined && result?.score !== null ? result.score : (submission.score !== undefined ? submission.score : undefined),
         totalTests: result?.totalTests,
         passedTests: result?.passedTests,
         feedback: result?.feedback,
@@ -477,7 +478,7 @@ app.post('/api/runner/callback', (req, res) => {
       } else {
         submission.status = status || 'failed';
       }
-      submission.score = score || 0;
+      submission.score = score !== undefined && score !== null ? score : 0;
       console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
     } else {
       console.error(`[CALLBACK] ERROR: Submission ${submissionId} not found in database`);
@@ -488,7 +489,7 @@ app.post('/api/runner/callback', (req, res) => {
     let result = database.results.find(r => r.submissionId === parseInt(submissionId));
     if (result) {
       // Update existing result
-      result.score = score || 0;
+      result.score = score !== undefined && score !== null ? score : 0;
       result.totalTests = totalTests || 0;
       result.passedTests = passedTests || 0;
       result.feedback = feedback || '';
@@ -498,7 +499,7 @@ app.post('/api/runner/callback', (req, res) => {
       result = {
         id: database.results.length + 1,
         submissionId: parseInt(submissionId),
-        score: score || 0,
+        score: score !== undefined && score !== null ? score : 0,
         totalTests: totalTests || 0,
         passedTests: passedTests || 0,
         feedback: feedback || '',

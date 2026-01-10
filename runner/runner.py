@@ -297,7 +297,7 @@ def run():
             'language': 'python'
         }
         
-        print(f"DEBUG: Callback status: {callback_status} (tests executed: {test_was_executed}, total: {test_result.get('total_tests', 0)})")
+        print(f"DEBUG: Callback status: {callback_status} (tests executed: {pytest_was_executed}, total: {test_result.get('total_tests', 0)})")
 
         # Send results back to backend
         print(f"DEBUG: Sending callback to backend: {BACKEND_URL}/runner/callback")

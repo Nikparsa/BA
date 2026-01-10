@@ -147,11 +147,19 @@ const LANGUAGE_CONFIGS = {
 ## 📈 API Endpoints
 
 ### Backend (`/api`)
-- `GET /languages` - Supported languages
-- `POST /auth/login` - User authentication
-- `GET /assignments` - List assignments
-- `POST /submissions` - Submit code
-- `GET /submissions/:id` - Get submission results
+- `GET /api` - API status
+- `GET /api/languages` - Supported languages
+- `POST /api/auth/login` - User authentication
+- `POST /api/auth/register` - User registration
+- `GET /api/assignments` - List assignments (auth required)
+- `GET /api/runner/assignments` - List assignments (public, for runner)
+- `POST /api/assignments` - Create assignment (teacher only)
+- `PUT /api/assignments/:id` - Update assignment (teacher only)
+- `DELETE /api/assignments/:id` - Delete assignment (teacher only)
+- `POST /api/submissions` - Submit code (auth required)
+- `GET /api/submissions` - Get all submissions (auth required)
+- `GET /api/submissions/:id` - Get submission results (auth required)
+- `POST /api/runner/callback` - Runner callback (internal)
 
 ### Runner (`/`)
 - `GET /health` - Service health check
