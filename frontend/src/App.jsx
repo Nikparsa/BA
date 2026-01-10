@@ -53,11 +53,16 @@ function getSubmissionStatusInfo(submission) {
   }
 
   // For failed status, check if we have a score (partial completion)
+  // IMPORTANT: Score 0 is valid and should show grade, not just "Fehlgeschlagen"
   if (submission.status === 'failed') {
-    const gradeInfo = getGradeInfo(submission.score);
-    if (gradeInfo) {
-      return gradeInfo;
+    // Check if score exists (can be 0, which is valid)
+    if (submission.score !== undefined && submission.score !== null) {
+      const gradeInfo = getGradeInfo(submission.score);
+      if (gradeInfo) {
+        return gradeInfo;
+      }
     }
+    // Only show "Fehlgeschlagen" if no score at all
     return { label: 'Fehlgeschlagen', className: 'status-grade-insufficient' };
   }
 

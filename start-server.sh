@@ -110,6 +110,19 @@ export RUNNER_PORT=${RUNNER_PORT:-5001}
 # Create logs directory
 mkdir -p logs
 
+# Check if ports are available
+if lsof -ti:$PORT > /dev/null 2>&1 || fuser $PORT/tcp > /dev/null 2>&1; then
+    echo -e "${RED}ERROR: Port $PORT is already in use!${NC}"
+    echo -e "${YELLOW}Please run ./stop-server.sh first${NC}"
+    exit 1
+fi
+
+if lsof -ti:$RUNNER_PORT > /dev/null 2>&1 || fuser $RUNNER_PORT/tcp > /dev/null 2>&1; then
+    echo -e "${RED}ERROR: Port $RUNNER_PORT is already in use!${NC}"
+    echo -e "${YELLOW}Please run ./stop-server.sh first${NC}"
+    exit 1
+fi
+
 # Start Backend
 echo -e "${CYAN}Starting Backend on port $PORT...${NC}"
 echo -e "${CYAN}Backend will use RUNNER_URL: $RUNNER_URL${NC}"
@@ -119,6 +132,14 @@ BACKEND_PID=$!
 echo $BACKEND_PID > ../logs/backend.pid
 cd ..
 sleep 3
+
+# Verify backend started
+if ! ps -p $BACKEND_PID > /dev/null 2>&1; then
+    echo -e "${RED}ERROR: Backend failed to start!${NC}"
+    echo -e "${YELLOW}Check logs/backend.log for errors${NC}"
+    cat logs/backend.log | tail -20
+    exit 1
+fi
 
 # Start Runner
 echo -e "${CYAN}Starting Runner on port $RUNNER_PORT...${NC}"
@@ -131,6 +152,14 @@ echo $RUNNER_PID > ../logs/runner.pid
 deactivate
 cd ..
 sleep 2
+
+# Verify runner started
+if ! ps -p $RUNNER_PID > /dev/null 2>&1; then
+    echo -e "${RED}ERROR: Runner failed to start!${NC}"
+    echo -e "${YELLOW}Check logs/runner.log for errors${NC}"
+    cat logs/runner.log | tail -20
+    exit 1
+fi
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
