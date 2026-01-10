@@ -471,6 +471,9 @@ app.post('/api/runner/callback', (req, res) => {
       // Map runner status to submission status
       // 'completed' from runner means tests ran successfully (even if some failed)
       // 'failed' from runner means execution error
+      // Update status based on runner response
+      // IMPORTANT: Even if status is 'failed', we should still save the score if it exists
+      // (e.g., if some tests passed before failure)
       if (status === 'completed') {
         submission.status = 'completed';
       } else if (status === 'failed') {
@@ -478,7 +481,10 @@ app.post('/api/runner/callback', (req, res) => {
       } else {
         submission.status = status || 'failed';
       }
-      submission.score = score !== undefined && score !== null ? score : 0;
+      // Always save score if provided, even for failed status
+      if (score !== undefined && score !== null) {
+        submission.score = score;
+      }
       console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
     } else {
       console.error(`[CALLBACK] ERROR: Submission ${submissionId} not found in database`);
@@ -486,27 +492,37 @@ app.post('/api/runner/callback', (req, res) => {
     }
     
     // Create or update result
+    // IMPORTANT: Always save result even if status is 'failed' - the score might still be valid
     let result = database.results.find(r => r.submissionId === parseInt(submissionId));
     if (result) {
       // Update existing result
-      result.score = score !== undefined && score !== null ? score : 0;
-      result.totalTests = totalTests || 0;
-      result.passedTests = passedTests || 0;
-      result.feedback = feedback || '';
-      console.log(`[CALLBACK] Updated existing result for submission ${submissionId}`);
+      // Only update score if provided (score can be 0, which is valid)
+      if (score !== undefined && score !== null) {
+        result.score = score;
+      }
+      if (totalTests !== undefined && totalTests !== null) {
+        result.totalTests = totalTests;
+      }
+      if (passedTests !== undefined && passedTests !== null) {
+        result.passedTests = passedTests;
+      }
+      if (feedback !== undefined && feedback !== null) {
+        result.feedback = feedback;
+      }
+      console.log(`[CALLBACK] Updated existing result for submission ${submissionId}: score=${result.score}`);
     } else {
       // Create new result
       result = {
         id: database.results.length + 1,
         submissionId: parseInt(submissionId),
         score: score !== undefined && score !== null ? score : 0,
-        totalTests: totalTests || 0,
-        passedTests: passedTests || 0,
+        totalTests: totalTests !== undefined && totalTests !== null ? totalTests : 0,
+        passedTests: passedTests !== undefined && passedTests !== null ? passedTests : 0,
         feedback: feedback || '',
         createdAt: new Date().toISOString()
       };
       database.results.push(result);
-      console.log(`[CALLBACK] Created new result for submission ${submissionId}:`, result);
+      console.log(`[CALLBACK] Created new result for submission ${submissionId}: score=${result.score}`);
     }
     
     saveDatabase();
