@@ -35,6 +35,12 @@
       "email": "student23@fh.com",
       "password": "123456",
       "role": "student"
+    },
+    {
+      "id": 7,
+      "email": "student@test-fh2",
+      "password": "123456",
+      "role": "student"
     }
   ],
   "assignments": [
@@ -472,6 +478,24 @@
       "status": "completed",
       "createdAt": "2026-01-10T15:15:14.700Z",
       "score": 1
+    },
+    {
+      "id": 50,
+      "userId": 7,
+      "assignmentId": 1,
+      "filename": "1768069205062-fizzbuzz_67p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T18:20:05.068Z",
+      "score": 0.6666666666666666
+    },
+    {
+      "id": 51,
+      "userId": 7,
+      "assignmentId": 1,
+      "filename": "1768069242054-fizzbuzz_33p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T18:20:42.058Z",
+      "score": 0.3333333333333333
     }
   ],
   "results": [
@@ -915,6 +939,24 @@
       "passedTests": 4,
       "feedback": "All 4 tests passed!",
       "createdAt": "2026-01-10T15:15:20.109Z"
+    },
+    {
+      "id": 50,
+      "submissionId": 50,
+      "score": 0.6666666666666666,
+      "totalTests": 6,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • tests/test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
+      "createdAt": "2026-01-10T18:20:11.242Z"
+    },
+    {
+      "id": 51,
+      "submissionId": 51,
+      "score": 0.3333333333333333,
+      "totalTests": 6,
+      "passedTests": 2,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'\n  • tests/test_fizzbuzz.py::test_returns_fizzbuzz: E       AssertionError: assert 'wrong' == 'FizzBuzz'\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'",
+      "createdAt": "2026-01-10T18:20:46.765Z"
     }
   ]
 }
