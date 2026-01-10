@@ -12,64 +12,84 @@ echo -e "${RED}FINDING GRADING PROBLEM${NC}"
 echo -e "${RED}========================================${NC}"
 echo ""
 
-# Get the most recent submission ID
-RECENT_SUB_ID=$(grep -o '"id":[0-9]*' backend/src/data/database.json | tail -1 | grep -o '[0-9]*' 2>/dev/null)
+# Get the most recent submission ID - try multiple methods
+RECENT_SUB_ID=$(grep -o '"id":[0-9]*' backend/src/data/database.json 2>/dev/null | tail -1 | grep -o '[0-9]*' 2>/dev/null)
 
+# Alternative method: look for submission entries
 if [ -z "$RECENT_SUB_ID" ]; then
-    echo -e "${RED}No submissions found!${NC}"
-    exit 1
+    RECENT_SUB_ID=$(grep -A 5 '"submissions"' backend/src/data/database.json 2>/dev/null | grep '"id"' | tail -1 | grep -o '[0-9]*' 2>/dev/null)
 fi
 
-echo -e "${CYAN}Analyzing submission ID: $RECENT_SUB_ID${NC}"
+# If still not found, check all submissions
+if [ -z "$RECENT_SUB_ID" ]; then
+    echo -e "${YELLOW}Could not find submission ID from database.json${NC}"
+    echo -e "${CYAN}Checking database.json structure...${NC}"
+    head -100 backend/src/data/database.json | grep -E '"id"|"submissions"|"status"' | head -20
+    echo ""
+    echo -e "${CYAN}Will analyze logs without specific submission ID...${NC}"
+    RECENT_SUB_ID="unknown"
+else
+    echo -e "${CYAN}Analyzing submission ID: $RECENT_SUB_ID${NC}"
+fi
 echo ""
 
 # 1. Check backend logs for submission
-echo -e "${YELLOW}=== BACKEND LOGS (Submission $RECENT_SUB_ID) ===${NC}"
+echo -e "${YELLOW}=== BACKEND LOGS ===${NC}"
 if [ -f "logs/backend.log" ]; then
-    echo -e "${CYAN}1. Submission sent to runner:${NC}"
-    grep "SUBMISSION.*$RECENT_SUB_ID" logs/backend.log | tail -3
+    echo -e "${CYAN}1. Recent submissions sent to runner (last 5):${NC}"
+    tail -200 logs/backend.log | grep "SUBMISSION.*Sending" | tail -5
     echo ""
     
-    echo -e "${CYAN}2. Callback received:${NC}"
-    grep "CALLBACK.*$RECENT_SUB_ID" logs/backend.log | tail -5
+    echo -e "${CYAN}2. Recent callbacks received (last 5):${NC}"
+    tail -200 logs/backend.log | grep "CALLBACK.*Received" | tail -5
     echo ""
     
-    echo -e "${CYAN}3. Any errors for submission $RECENT_SUB_ID:${NC}"
-    grep -i "error\|exception" logs/backend.log | grep "$RECENT_SUB_ID" | tail -5
+    if [ "$RECENT_SUB_ID" != "unknown" ]; then
+        echo -e "${CYAN}3. Specific submission $RECENT_SUB_ID:${NC}"
+        grep "SUBMISSION.*$RECENT_SUB_ID\|CALLBACK.*$RECENT_SUB_ID" logs/backend.log | tail -5
+        echo ""
+    fi
+    
+    echo -e "${CYAN}4. Recent errors:${NC}"
+    tail -100 logs/backend.log | grep -i "error\|exception" | tail -5
     echo ""
 else
     echo -e "${RED}backend.log not found!${NC}"
 fi
 
 # 2. Check runner logs
-echo -e "${YELLOW}=== RUNNER LOGS (Submission $RECENT_SUB_ID) ===${NC}"
+echo -e "${YELLOW}=== RUNNER LOGS ===${NC}"
 if [ -f "logs/runner.log" ]; then
-    echo -e "${CYAN}1. Runner received submission:${NC}"
-    strings logs/runner.log | grep -E "DEBUG.*/run endpoint|submission.*$RECENT_SUB_ID" | tail -5
+    echo -e "${CYAN}1. Recent /run endpoint calls (last 5):${NC}"
+    strings logs/runner.log | tail -300 | grep "DEBUG.*/run endpoint" | tail -5
     echo ""
     
-    echo -e "${CYAN}2. File lookup:${NC}"
-    strings logs/runner.log | grep -E "Looking for file|File exists|$RECENT_SUB_ID" | tail -5
+    echo -e "${CYAN}2. Recent file lookups:${NC}"
+    strings logs/runner.log | tail -300 | grep -E "Looking for file|File exists" | tail -5
     echo ""
     
-    echo -e "${CYAN}3. Assignment fetch:${NC}"
-    strings logs/runner.log | grep -E "Got assignments|Assignment not found|$RECENT_SUB_ID" | tail -3
+    echo -e "${CYAN}3. Recent assignment fetches:${NC}"
+    strings logs/runner.log | tail -300 | grep -E "Got assignments|Assignment not found" | tail -3
     echo ""
     
-    echo -e "${CYAN}4. Test directory:${NC}"
-    strings logs/runner.log | grep -E "Test directory|tests_dir|Copied tests|$RECENT_SUB_ID" | tail -5
+    echo -e "${CYAN}4. Recent test directory operations:${NC}"
+    strings logs/runner.log | tail -300 | grep -E "Test directory|Copied tests|tests_dir" | tail -5
     echo ""
     
-    echo -e "${CYAN}5. Pytest execution:${NC}"
-    strings logs/runner.log | grep -E "About to run pytest|Pytest command|Test result|pytest_executed|$RECENT_SUB_ID" | tail -10
+    echo -e "${CYAN}5. Recent pytest executions:${NC}"
+    strings logs/runner.log | tail -300 | grep -E "About to run pytest|Pytest command|Test result|pytest_executed" | tail -10
     echo ""
     
-    echo -e "${CYAN}6. Callback sent:${NC}"
-    strings logs/runner.log | grep -E "Sending callback|Callback response|callback.*$RECENT_SUB_ID" | tail -5
+    echo -e "${CYAN}6. Recent callbacks sent:${NC}"
+    strings logs/runner.log | tail -300 | grep -E "Sending callback|Callback response|Callback status" | tail -5
     echo ""
     
-    echo -e "${RED}7. ERRORS AND EXCEPTIONS:${NC}"
-    strings logs/runner.log | grep -iE "ERROR|Exception|Traceback|Failed" | tail -20
+    echo -e "${RED}7. ALL ERRORS AND EXCEPTIONS (last 30):${NC}"
+    strings logs/runner.log | tail -500 | grep -iE "ERROR|Exception|Traceback|Failed" | tail -30
+    echo ""
+    
+    echo -e "${CYAN}8. Full recent runner activity (last 50 lines):${NC}"
+    strings logs/runner.log | tail -50
     echo ""
 else
     echo -e "${RED}runner.log not found!${NC}"
