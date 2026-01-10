@@ -439,14 +439,22 @@ app.get('/api/submissions', authRequired, (req, res) => {
     .map(submission => {
       const result = database.results.find(r => r.submissionId === submission.id);
       const user = database.users.find(u => u.id === submission.userId);
+      
+      // Only show score if submission is completed or failed (not processing/queued)
+      // If status is processing/queued, score should be undefined (not 0)
+      let scoreValue = undefined;
+      if (submission.status === 'completed' || submission.status === 'failed') {
+        // Use result.score if available, otherwise fall back to submission.score
+        // Score 0 is valid and should be displayed for completed/failed submissions
+        scoreValue = result?.score !== undefined && result?.score !== null 
+          ? result.score 
+          : (submission.score !== undefined && submission.score !== null ? submission.score : 0);
+      }
+      // If status is processing/queued, scoreValue stays undefined (will not show 0%)
+      
       return {
         ...submission,
-        // Use result.score if available, otherwise fall back to submission.score
-        // IMPORTANT: Score 0 is valid and should be displayed
-        // Always return a number (0 is valid), never undefined
-        score: result?.score !== undefined && result?.score !== null 
-          ? result.score 
-          : (submission.score !== undefined && submission.score !== null ? submission.score : 0),
+        score: scoreValue, // undefined for processing, number for completed/failed
         totalTests: result?.totalTests,
         passedTests: result?.passedTests,
         feedback: result?.feedback,
@@ -508,15 +516,16 @@ app.post('/api/runner/callback', (req, res) => {
       } else {
         submission.status = status || 'failed';
       }
-      // Always save score - even if 0 or failed status
-      // Score 0 is a valid score and should be saved and displayed
-      // IMPORTANT: Always set score, even if it's 0 (which is a valid score)
-      submission.score = score !== undefined && score !== null ? score : 0;
-      // Force score to be a number, not undefined
-      if (submission.score === undefined || submission.score === null) {
-        submission.score = 0;
+      // Only save score when status is completed or failed (not processing)
+      // Score 0 is a valid score and should be saved for completed/failed submissions
+      // IMPORTANT: Only set score when we have a valid result from runner
+      if (status === 'completed' || status === 'failed') {
+        submission.score = score !== undefined && score !== null ? score : 0;
+        console.log(`[CALLBACK] Set submission ${submissionId} score to: ${submission.score} (from param: ${score}, type: ${typeof score})`);
+      } else {
+        // Don't set score if status is still processing/queued
+        console.log(`[CALLBACK] Submission ${submissionId} status is '${status}', not setting score yet`);
       }
-      console.log(`[CALLBACK] Set submission ${submissionId} score to: ${submission.score} (from param: ${score}, type: ${typeof score})`);
       console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
     } else {
       console.error(`[CALLBACK] ERROR: Submission ${submissionId} not found in database`);
