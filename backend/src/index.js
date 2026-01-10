@@ -355,7 +355,18 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
   saveDatabase();
   
   // Send to runner
-  console.log(`Sending submission ${submission.id} to runner at ${RUNNER_URL}/run`);
+  console.log(`[SUBMISSION] Sending submission ${submission.id} to runner at ${RUNNER_URL}/run`);
+  console.log(`[SUBMISSION] Submission data:`, JSON.stringify({
+    submissionId: submission.id,
+    assignmentId: submission.assignmentId,
+    filename: req.file.filename
+  }));
+  
+  // Update status to processing immediately
+  submission.status = 'processing';
+  saveDatabase();
+  console.log(`[SUBMISSION] Updated submission ${submission.id} status to 'processing'`);
+  
   fetch(`${RUNNER_URL}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -366,19 +377,32 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
     })
   })
   .then(response => {
+    console.log(`[SUBMISSION] Runner response status: ${response.status} for submission ${submission.id}`);
     if (!response.ok) {
-      console.error(`Runner responded with status ${response.status} for submission ${submission.id}`);
+      console.error(`[SUBMISSION] ERROR: Runner responded with status ${response.status}`);
+      console.error(`[SUBMISSION] Response text:`, response.statusText);
+      // Update status to failed if runner rejects
+      submission.status = 'failed';
+      saveDatabase();
     } else {
-      console.log(`Submission ${submission.id} successfully sent to runner`);
+      console.log(`[SUBMISSION] Submission ${submission.id} successfully sent to runner`);
     }
     return response.json();
   })
   .then(data => {
-    console.log(`Runner response for submission ${submission.id}:`, data);
+    console.log(`[SUBMISSION] Runner response data for submission ${submission.id}:`, JSON.stringify(data));
   })
   .catch(err => {
-    console.error(`Failed to send submission ${submission.id} to runner:`, err.message);
-    console.error(`Runner URL: ${RUNNER_URL}/run`);
+    console.error(`[SUBMISSION] CRITICAL ERROR: Failed to send submission ${submission.id} to runner`);
+    console.error(`[SUBMISSION] Error type: ${err.name}, message: ${err.message}`);
+    console.error(`[SUBMISSION] Runner URL: ${RUNNER_URL}/run`);
+    console.error(`[SUBMISSION] Full error:`, err);
+    // Update status to failed
+    const failedSubmission = database.submissions.find(s => s.id === submission.id);
+    if (failedSubmission) {
+      failedSubmission.status = 'failed';
+      saveDatabase();
+    }
   });
   
   res.json({ 
