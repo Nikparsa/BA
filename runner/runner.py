@@ -236,12 +236,28 @@ def run():
         }
 
         # Send results back to backend
-        print(f"DEBUG: Sending callback to backend: {callback_data}")  # Debug
+        print(f"DEBUG: Sending callback to backend: {BACKEND_URL}/runner/callback")
+        print(f"DEBUG: Callback data: {callback_data}")
         try:
-            callback_response = requests.post(f"{BACKEND_URL}/runner/callback", json=callback_data, timeout=5)
-            print(f"DEBUG: Callback response: {callback_response.status_code}")  # Debug
+            callback_response = requests.post(
+                f"{BACKEND_URL}/runner/callback", 
+                json=callback_data, 
+                timeout=30,
+                headers={'Content-Type': 'application/json'}
+            )
+            print(f"DEBUG: Callback response status: {callback_response.status_code}")
+            print(f"DEBUG: Callback response body: {callback_response.text}")
+            if callback_response.status_code != 200:
+                print(f"ERROR: Callback failed with status {callback_response.status_code}")
+                print(f"ERROR: Response: {callback_response.text}")
+        except requests.exceptions.Timeout as e:
+            print(f"ERROR: Callback timeout after 30 seconds: {e}")
+        except requests.exceptions.ConnectionError as e:
+            print(f"ERROR: Could not connect to backend at {BACKEND_URL}: {e}")
         except Exception as e:
-            print(f"Warning: Failed to send callback: {e}")
+            print(f"ERROR: Failed to send callback: {type(e).__name__}: {e}")
+            import traceback
+            print(f"ERROR: Traceback: {traceback.format_exc()}")
 
         return jsonify({
             'ok': True, 
@@ -255,18 +271,27 @@ def run():
         print(f"DEBUG: Error occurred: {str(e)}")  # Debug
         print(f"DEBUG: Traceback:\n{error_trace}")  # Debug
         # Send error callback
+        print(f"ERROR: Sending error callback for submission {submission_id}")
         try:
-            requests.post(f"{BACKEND_URL}/runner/callback", json={
-                'submissionId': submission_id,
-                'status': 'failed',
-                'score': 0,
-                'totalTests': 0,
-                'passedTests': 0,
-                'feedback': str(e),
-                'language': 'python'
-            }, timeout=5)
-        except:
-            pass
+            callback_response = requests.post(
+                f"{BACKEND_URL}/runner/callback", 
+                json={
+                    'submissionId': submission_id,
+                    'status': 'failed',
+                    'score': 0,
+                    'totalTests': 0,
+                    'passedTests': 0,
+                    'feedback': str(e),
+                    'language': 'python'
+                }, 
+                timeout=30,
+                headers={'Content-Type': 'application/json'}
+            )
+            print(f"ERROR: Error callback response: {callback_response.status_code}")
+        except Exception as callback_err:
+            print(f"ERROR: Failed to send error callback: {callback_err}")
+            import traceback
+            print(f"ERROR: Callback error traceback: {traceback.format_exc()}")
         
         return jsonify({'error': 'runner error', 'message': str(e)}), 500
     finally:

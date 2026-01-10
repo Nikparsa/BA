@@ -429,45 +429,61 @@ app.get('/api/submissions/:id', authRequired, (req, res) => {
 
 // Runner callback
 app.post('/api/runner/callback', (req, res) => {
-  const { submissionId, status, score, totalTests, passedTests, feedback } = req.body;
-  
-  console.log(`Callback received for submission ${submissionId}: status=${status}, score=${score}`);
-  
-  // Update submission status and score
-  const submission = database.submissions.find(s => s.id === submissionId);
-  if (submission) {
-    submission.status = status;
-    submission.score = score || 0;
-  } else {
-    console.error(`Submission ${submissionId} not found in database`);
+  try {
+    const { submissionId, status, score, totalTests, passedTests, feedback } = req.body;
+    
+    console.log(`[CALLBACK] Received for submission ${submissionId}: status=${status}, score=${score}`);
+    console.log(`[CALLBACK] Full body:`, JSON.stringify(req.body, null, 2));
+    
+    if (!submissionId) {
+      console.error(`[CALLBACK] ERROR: Missing submissionId in request body`);
+      return res.status(400).json({ error: 'Missing submissionId' });
+    }
+    
+    // Update submission status and score
+    const submission = database.submissions.find(s => s.id === parseInt(submissionId));
+    if (submission) {
+      submission.status = status || 'failed';
+      submission.score = score || 0;
+      console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
+    } else {
+      console.error(`[CALLBACK] ERROR: Submission ${submissionId} not found in database`);
+      console.error(`[CALLBACK] Available submission IDs:`, database.submissions.map(s => s.id));
+    }
+    
+    // Create or update result
+    let result = database.results.find(r => r.submissionId === parseInt(submissionId));
+    if (result) {
+      // Update existing result
+      result.score = score || 0;
+      result.totalTests = totalTests || 0;
+      result.passedTests = passedTests || 0;
+      result.feedback = feedback || '';
+      console.log(`[CALLBACK] Updated existing result for submission ${submissionId}`);
+    } else {
+      // Create new result
+      result = {
+        id: database.results.length + 1,
+        submissionId: parseInt(submissionId),
+        score: score || 0,
+        totalTests: totalTests || 0,
+        passedTests: passedTests || 0,
+        feedback: feedback || '',
+        createdAt: new Date().toISOString()
+      };
+      database.results.push(result);
+      console.log(`[CALLBACK] Created new result for submission ${submissionId}:`, result);
+    }
+    
+    saveDatabase();
+    console.log(`[CALLBACK] Database saved for submission ${submissionId}`);
+    
+    res.json({ ok: true, submissionId: parseInt(submissionId) });
+  } catch (error) {
+    console.error(`[CALLBACK] EXCEPTION:`, error);
+    console.error(`[CALLBACK] Stack:`, error.stack);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-  
-  // Create or update result
-  let result = database.results.find(r => r.submissionId === submissionId);
-  if (result) {
-    // Update existing result
-    result.score = score || 0;
-    result.totalTests = totalTests || 0;
-    result.passedTests = passedTests || 0;
-    result.feedback = feedback || '';
-  } else {
-    // Create new result
-    result = {
-      id: database.results.length + 1,
-      submissionId,
-      score: score || 0,
-      totalTests: totalTests || 0,
-      passedTests: passedTests || 0,
-      feedback: feedback || '',
-      createdAt: new Date().toISOString()
-    };
-    database.results.push(result);
-  }
-  
-  saveDatabase();
-  console.log(`Database updated for submission ${submissionId}`);
-  
-  res.json({ ok: true });
 });
 
 // Serve React app - handle root and all other routes
