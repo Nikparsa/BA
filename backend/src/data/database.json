@@ -76,14 +76,6 @@
         "Ensure the class uses standard Python dunder methods so the tests can compare vectors directly."
       ],
       "origin": "builtin"
-    },
-    {
-      "id": 4,
-      "title": "gerade zahl",
-      "slug": "csv-stats",
-      "description": "schreiben Sie eine python program. die gerade Zahlen ergibt.",
-      "details": [],
-      "origin": "builtin"
     }
   ],
   "submissions": [
