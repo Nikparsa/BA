@@ -36,22 +36,34 @@ echo ""
 # 1. Check backend logs for submission
 echo -e "${YELLOW}=== BACKEND LOGS ===${NC}"
 if [ -f "logs/backend.log" ]; then
+    # Check if file is binary or text
+    if file logs/backend.log | grep -q "text"; then
+        BACKEND_LOG_CMD="cat logs/backend.log"
+    else
+        # Filter binary characters
+        BACKEND_LOG_CMD="cat logs/backend.log | tr -cd '\11\12\15\40-\176'"
+    fi
+    
     echo -e "${CYAN}1. Recent submissions sent to runner (last 5):${NC}"
-    tail -200 logs/backend.log | grep "SUBMISSION.*Sending" | tail -5
+    $BACKEND_LOG_CMD | tail -200 | grep "SUBMISSION.*Sending" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}2. Recent callbacks received (last 5):${NC}"
-    tail -200 logs/backend.log | grep "CALLBACK.*Received" | tail -5
+    $BACKEND_LOG_CMD | tail -200 | grep "CALLBACK.*Received" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     if [ "$RECENT_SUB_ID" != "unknown" ]; then
         echo -e "${CYAN}3. Specific submission $RECENT_SUB_ID:${NC}"
-        grep "SUBMISSION.*$RECENT_SUB_ID\|CALLBACK.*$RECENT_SUB_ID" logs/backend.log | tail -5
+        $BACKEND_LOG_CMD | grep "SUBMISSION.*$RECENT_SUB_ID\|CALLBACK.*$RECENT_SUB_ID" 2>/dev/null | tail -5 || echo "No matches found"
         echo ""
     fi
     
     echo -e "${CYAN}4. Recent errors:${NC}"
-    tail -100 logs/backend.log | grep -i "error\|exception" | tail -5
+    $BACKEND_LOG_CMD | tail -100 | grep -i "error\|exception" 2>/dev/null | tail -5 || echo "No errors found"
+    echo ""
+    
+    echo -e "${CYAN}5. Last 50 lines of backend.log:${NC}"
+    $BACKEND_LOG_CMD | tail -50
     echo ""
 else
     echo -e "${RED}backend.log not found!${NC}"
@@ -60,36 +72,44 @@ fi
 # 2. Check runner logs
 echo -e "${YELLOW}=== RUNNER LOGS ===${NC}"
 if [ -f "logs/runner.log" ]; then
+    # Use cat or tr instead of strings if not available
+    if command -v strings >/dev/null 2>&1; then
+        RUNNER_LOG_CMD="strings logs/runner.log"
+    else
+        # Filter binary characters - keep printable ASCII
+        RUNNER_LOG_CMD="cat logs/runner.log | tr -cd '\11\12\15\40-\176'"
+    fi
+    
     echo -e "${CYAN}1. Recent /run endpoint calls (last 5):${NC}"
-    strings logs/runner.log | tail -300 | grep "DEBUG.*/run endpoint" | tail -5
+    $RUNNER_LOG_CMD | tail -300 | grep "DEBUG.*/run endpoint" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}2. Recent file lookups:${NC}"
-    strings logs/runner.log | tail -300 | grep -E "Looking for file|File exists" | tail -5
+    $RUNNER_LOG_CMD | tail -300 | grep -E "Looking for file|File exists" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}3. Recent assignment fetches:${NC}"
-    strings logs/runner.log | tail -300 | grep -E "Got assignments|Assignment not found" | tail -3
+    $RUNNER_LOG_CMD | tail -300 | grep -E "Got assignments|Assignment not found" 2>/dev/null | tail -3 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}4. Recent test directory operations:${NC}"
-    strings logs/runner.log | tail -300 | grep -E "Test directory|Copied tests|tests_dir" | tail -5
+    $RUNNER_LOG_CMD | tail -300 | grep -E "Test directory|Copied tests|tests_dir" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}5. Recent pytest executions:${NC}"
-    strings logs/runner.log | tail -300 | grep -E "About to run pytest|Pytest command|Test result|pytest_executed" | tail -10
+    $RUNNER_LOG_CMD | tail -300 | grep -E "About to run pytest|Pytest command|Test result|pytest_executed" 2>/dev/null | tail -10 || echo "No matches found"
     echo ""
     
     echo -e "${CYAN}6. Recent callbacks sent:${NC}"
-    strings logs/runner.log | tail -300 | grep -E "Sending callback|Callback response|Callback status" | tail -5
+    $RUNNER_LOG_CMD | tail -300 | grep -E "Sending callback|Callback response|Callback status" 2>/dev/null | tail -5 || echo "No matches found"
     echo ""
     
     echo -e "${RED}7. ALL ERRORS AND EXCEPTIONS (last 30):${NC}"
-    strings logs/runner.log | tail -500 | grep -iE "ERROR|Exception|Traceback|Failed" | tail -30
+    $RUNNER_LOG_CMD | tail -500 | grep -iE "ERROR|Exception|Traceback|Failed" 2>/dev/null | tail -30 || echo "No errors found"
     echo ""
     
     echo -e "${CYAN}8. Full recent runner activity (last 50 lines):${NC}"
-    strings logs/runner.log | tail -50
+    $RUNNER_LOG_CMD | tail -50
     echo ""
 else
     echo -e "${RED}runner.log not found!${NC}"
@@ -146,23 +166,35 @@ if [ "$SUB_STATUS" = "failed" ]; then
     # Check for specific errors
     echo ""
     echo -e "${CYAN}Common error patterns:${NC}"
-    if strings logs/runner.log 2>/dev/null | grep -qi "file not found"; then
+    if command -v strings >/dev/null 2>&1; then
+        RUNNER_CHECK="strings logs/runner.log"
+    else
+        RUNNER_CHECK="cat logs/runner.log | tr -cd '\11\12\15\40-\176'"
+    fi
+    
+    if $RUNNER_CHECK 2>/dev/null | grep -qi "file not found"; then
         echo -e "${RED}✗ File not found error${NC}"
     fi
-    if strings logs/runner.log 2>/dev/null | grep -qi "Test directory not found"; then
+    if $RUNNER_CHECK 2>/dev/null | grep -qi "Test directory not found"; then
         echo -e "${RED}✗ Test directory not found${NC}"
     fi
-    if strings logs/runner.log 2>/dev/null | grep -qi "Assignment not found"; then
+    if $RUNNER_CHECK 2>/dev/null | grep -qi "Assignment not found"; then
         echo -e "${RED}✗ Assignment not found${NC}"
     fi
-    if strings logs/runner.log 2>/dev/null | grep -qi "pytest.*not found\|python.*not found"; then
+    if $RUNNER_CHECK 2>/dev/null | grep -qi "pytest.*not found\|python.*not found"; then
         echo -e "${RED}✗ Pytest or Python not found${NC}"
     fi
-    if strings logs/runner.log 2>/dev/null | grep -qi "Connection.*refused\|Could not connect"; then
+    if $RUNNER_CHECK 2>/dev/null | grep -qi "Connection.*refused\|Could not connect"; then
         echo -e "${RED}✗ Cannot connect to backend${NC}"
     fi
 fi
 
 echo ""
 echo -e "${CYAN}Full error details:${NC}"
-strings logs/runner.log 2>/dev/null | tail -100 | grep -B 2 -A 5 -iE "error|exception" | tail -30
+if [ -f "logs/runner.log" ]; then
+    if command -v strings >/dev/null 2>&1; then
+        strings logs/runner.log 2>/dev/null | tail -100 | grep -B 2 -A 5 -iE "error|exception" 2>/dev/null | tail -30 || echo "No errors found"
+    else
+        cat logs/runner.log | tr -cd '\11\12\15\40-\176' | tail -100 | grep -B 2 -A 5 -iE "error|exception" 2>/dev/null | tail -30 || echo "No errors found"
+    fi
+fi
