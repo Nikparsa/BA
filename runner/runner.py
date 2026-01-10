@@ -75,6 +75,10 @@ def run_pytest(workdir, test_dir):
             timeout=60
         )
         
+        print(f"DEBUG: Pytest return code: {result.returncode}")
+        print(f"DEBUG: Pytest stdout (first 1000 chars): {result.stdout[:1000] if result.stdout else 'None'}")
+        print(f"DEBUG: Pytest stderr (first 500 chars): {result.stderr[:500] if result.stderr else 'None'}")
+        
         # Parse results
         total_tests = 0
         passed_tests = 0
@@ -117,9 +121,29 @@ def run_pytest(workdir, test_dir):
                     total_tests = len(tests_list)
                     passed_tests = len([t for t in tests_list if t.get('outcome') == 'passed'])
                     failed_tests = len([t for t in tests_list if t.get('outcome') == 'failed'])
+                    print(f"DEBUG: Counted from tests array: total={total_tests}, passed={passed_tests}, failed={failed_tests}")
                 
-                print(f"DEBUG: JSON Report Summary: total={total_tests}, passed={passed_tests}, failed={failed_tests}")
+                # LAST RESORT: Parse from pytest output if JSON report is empty
+                if total_tests == 0 and result.stdout:
+                    # Try to parse from stdout: "X passed" or "X failed" or "X passed, Y failed"
+                    import re
+                    passed_match = re.search(r'(\d+)\s+passed', result.stdout)
+                    failed_match = re.search(r'(\d+)\s+failed', result.stdout)
+                    if passed_match or failed_match:
+                        passed_tests = int(passed_match.group(1)) if passed_match else 0
+                        failed_tests = int(failed_match.group(1)) if failed_match else 0
+                        total_tests = passed_tests + failed_tests
+                        print(f"DEBUG: Parsed from stdout: total={total_tests}, passed={passed_tests}, failed={failed_tests}")
+                
+                print(f"DEBUG: FINAL JSON Report Summary: total={total_tests}, passed={passed_tests}, failed={failed_tests}")
                 print(f"DEBUG: Full summary object: {summary}")
+                if 'tests' in report:
+                    print(f"DEBUG: Number of test items in report: {len(report.get('tests', []))}")
+                    test_outcomes = {}
+                    for test in report.get('tests', []):
+                        outcome = test.get('outcome', 'unknown')
+                        test_outcomes[outcome] = test_outcomes.get(outcome, 0) + 1
+                    print(f"DEBUG: Test outcomes: {test_outcomes}")
                 
                 # Generate feedback from failed tests
                 tests = report.get('tests', [])
@@ -151,8 +175,18 @@ def run_pytest(workdir, test_dir):
             print(f"DEBUG: Pytest stdout: {result.stdout[:500] if result.stdout else 'None'}")
             print(f"DEBUG: Pytest stderr: {result.stderr[:500] if result.stderr else 'None'}")
         
-        score = passed_tests / total_tests if total_tests > 0 else 0.0
+        # Calculate score - ensure it's a float between 0 and 1
+        if total_tests > 0:
+            score = float(passed_tests) / float(total_tests)
+        else:
+            score = 0.0
+            print(f"WARNING: total_tests is 0, cannot calculate score! Setting to 0.0")
+        
+        # Ensure score is between 0 and 1
+        score = max(0.0, min(1.0, score))
+        
         print(f"DEBUG: Calculated score: {score} (passed={passed_tests}, total={total_tests})")
+        print(f"DEBUG: Score as percentage: {score * 100}%")
         
         return {
             'success': result.returncode == 0,
