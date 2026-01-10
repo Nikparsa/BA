@@ -496,6 +496,15 @@
       "status": "completed",
       "createdAt": "2026-01-10T18:20:42.058Z",
       "score": 0.3333333333333333
+    },
+    {
+      "id": 52,
+      "userId": 7,
+      "assignmentId": 2,
+      "filename": "1768080528279-csv_100p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T21:28:48.288Z",
+      "score": 1
     }
   ],
   "results": [
@@ -957,6 +966,15 @@
       "passedTests": 2,
       "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'\n  • tests/test_fizzbuzz.py::test_returns_fizzbuzz: E       AssertionError: assert 'wrong' == 'FizzBuzz'\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'",
       "createdAt": "2026-01-10T18:20:46.765Z"
+    },
+    {
+      "id": 52,
+      "submissionId": 52,
+      "score": 1,
+      "totalTests": 4,
+      "passedTests": 4,
+      "feedback": "All 4 tests passed!",
+      "createdAt": "2026-01-10T21:28:53.904Z"
     }
   ]
 }

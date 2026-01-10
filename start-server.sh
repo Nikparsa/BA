@@ -103,8 +103,9 @@ echo ""
 # Get environment variables or use defaults
 export PORT=${PORT:-3000}
 export JWT_SECRET=${JWT_SECRET:-"production_secret_key_change_me"}
-export RUNNER_URL=${RUNNER_URL:-"http://localhost:5001"}
-export BACKEND_URL=${BACKEND_URL:-"http://localhost:3000/api"}
+# Use 127.0.0.1 instead of localhost to force IPv4 (avoid IPv6 ::1 resolution issues)
+export RUNNER_URL=${RUNNER_URL:-"http://127.0.0.1:5001"}
+export BACKEND_URL=${BACKEND_URL:-"http://127.0.0.1:3000/api"}
 export RUNNER_PORT=${RUNNER_PORT:-5001}
 
 # Create logs directory
