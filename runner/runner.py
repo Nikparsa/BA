@@ -29,6 +29,32 @@ def run_pytest(workdir, test_dir):
     """Run pytest and return results"""
     report_path = os.path.join(workdir, 'report.json')
     
+    # Ensure test_dir exists and has test files
+    if not os.path.exists(test_dir):
+        return {
+            'success': False,
+            'total_tests': 0,
+            'passed_tests': 0,
+            'failed_tests': 0,
+            'score': 0.0,
+            'feedback': f'Test directory not found: {test_dir}',
+            'pytest_executed': False  # Pytest won't execute
+        }
+    
+    test_files = [f for f in os.listdir(test_dir) if f.startswith('test_') and f.endswith('.py')]
+    if not test_files:
+        return {
+            'success': False,
+            'total_tests': 0,
+            'passed_tests': 0,
+            'failed_tests': 0,
+            'score': 0.0,
+            'feedback': f'No test files found in {test_dir}',
+            'pytest_executed': False  # Pytest won't execute (no test files)
+        }
+    
+    print(f"DEBUG: Running pytest with {len(test_files)} test files in {test_dir}")
+    
     cmd = [
         'python', '-m', 'pytest',
         '-q',
@@ -37,6 +63,8 @@ def run_pytest(workdir, test_dir):
         f'--json-report-file={report_path}',
         test_dir
     ]
+    
+    print(f"DEBUG: Pytest command: {' '.join(cmd)}")
     
     try:
         result = subprocess.run(
@@ -52,6 +80,7 @@ def run_pytest(workdir, test_dir):
         passed_tests = 0
         failed_tests = 0
         feedback = ""
+        pytest_executed = True  # pytest was executed (even if with errors)
         
         if os.path.exists(report_path):
             try:
@@ -77,13 +106,21 @@ def run_pytest(workdir, test_dir):
                             error_line = next((line for line in lines if 'AssertionError' in line), lines[0] if lines else '')
                             feedback_parts.append(f"  • {nodeid}: {error_line}")
                     feedback = '\n'.join(feedback_parts)
-                else:
+                elif total_tests > 0:
                     feedback = f"All {passed_tests} tests passed!"
+                else:
+                    feedback = "Tests executed but no test results found in report"
                     
             except (json.JSONDecodeError, IOError) as e:
                 feedback = f"Failed to parse test results: {str(e)}"
+                print(f"DEBUG: JSON parse error: {e}")
         else:
-            feedback = result.stderr or "Test execution completed but no report generated"
+            # Pytest was executed but no report.json was generated
+            # This could mean pytest-json-report is not installed or there was an issue
+            feedback = result.stderr or result.stdout or "Test execution completed but no report generated"
+            print(f"DEBUG: No report.json found. Pytest returncode: {result.returncode}")
+            print(f"DEBUG: Pytest stdout: {result.stdout[:500] if result.stdout else 'None'}")
+            print(f"DEBUG: Pytest stderr: {result.stderr[:500] if result.stderr else 'None'}")
         
         score = passed_tests / total_tests if total_tests > 0 else 0.0
         
@@ -93,26 +130,31 @@ def run_pytest(workdir, test_dir):
             'passed_tests': passed_tests,
             'failed_tests': failed_tests,
             'score': score,
-            'feedback': feedback
+            'feedback': feedback,
+            'pytest_executed': pytest_executed  # Track if pytest was actually executed
         }
         
     except subprocess.TimeoutExpired:
+        # Pytest started but timed out - still counts as executed
         return {
             'success': False,
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
             'score': 0.0,
-            'feedback': 'Test execution timed out after 60 seconds'
+            'feedback': 'Test execution timed out after 60 seconds',
+            'pytest_executed': True  # Pytest was executed but timed out
         }
     except Exception as e:
+        # Other exceptions mean pytest didn't execute
         return {
             'success': False,
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
             'score': 0.0,
-            'feedback': f'Test execution failed: {str(e)}'
+            'feedback': f'Test execution failed: {str(e)}',
+            'pytest_executed': False  # Pytest didn't execute
         }
 
 print("DEBUG: About to register /health route")  # Debug before route
@@ -196,20 +238,28 @@ def run():
             raise RuntimeError(f'Test directory not found: {tests_dir}')
 
         # Copy test files to workdir
+        workdir_tests = os.path.join(workdir, 'tests')
+        os.makedirs(workdir_tests, exist_ok=True)
+        
         for name in os.listdir(tests_dir):
             src = os.path.join(tests_dir, name)
-            dst = os.path.join(workdir, name)
+            dst = os.path.join(workdir_tests, name)
             if os.path.isdir(src):
                 shutil.copytree(src, dst, dirs_exist_ok=True)
             else:
                 shutil.copy2(src, dst)
+        
+        print(f"DEBUG: Copied tests from {tests_dir} to {workdir_tests}")
 
         # Get extracted files list
         extracted_files = []
         for root, dirs, files in os.walk(workdir):
             for file in files:
-                if not file.startswith('test_') and file.endswith('.py'):
+                # Skip test files and files in test directories
+                if not file.startswith('test_') and file.endswith('.py') and 'tests' not in root:
                     extracted_files.append(file)
+        
+        print(f"DEBUG: Found extracted files: {extracted_files}")
 
         # Determine language (from assignment or auto-detect)
         detected_language = assignment.get('language', 'python')
@@ -217,23 +267,37 @@ def run():
             detected_language = plugin_manager.detect_language(extracted_files)
         
         if not detected_language:
-            raise RuntimeError('Could not detect programming language')
+            detected_language = 'python'  # Default to python
+            print(f"DEBUG: Could not detect language, defaulting to python")
+        else:
+            print(f"DEBUG: Detected language: {detected_language}")
 
         # Execute tests using language plugin (simplified for Python)
-        print("DEBUG: About to run pytest...")  # Debug
-        test_result = run_pytest(workdir, tests_dir)
+        print(f"DEBUG: About to run pytest in workdir: {workdir}, tests_dir: {workdir_tests}")  # Debug
+        test_result = run_pytest(workdir, workdir_tests)
         print(f"DEBUG: Test result: {test_result}")  # Debug
 
         # Prepare callback data
+        # Always send 'completed' if pytest was executed (even if no tests found or parsing failed)
+        # 'failed' status is only for execution errors before pytest runs
+        pytest_was_executed = test_result.get('pytest_executed', False)
+        test_count = test_result.get('total_tests', 0)
+        
+        # If pytest was executed, it's 'completed' even if total_tests == 0
+        # (could mean no tests found, parsing error, but pytest itself ran)
+        callback_status = 'completed' if pytest_was_executed else 'failed'
+        
         callback_data = {
             'submissionId': submission_id,
-            'status': 'completed' if test_result.get('success', False) else 'failed',
+            'status': callback_status,
             'score': test_result.get('score', 0.0),
             'totalTests': test_result.get('total_tests', 0),
             'passedTests': test_result.get('passed_tests', 0),
             'feedback': test_result.get('feedback', ''),
             'language': 'python'
         }
+        
+        print(f"DEBUG: Callback status: {callback_status} (tests executed: {test_was_executed}, total: {test_result.get('total_tests', 0)})")
 
         # Send results back to backend
         print(f"DEBUG: Sending callback to backend: {BACKEND_URL}/runner/callback")

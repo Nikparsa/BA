@@ -467,7 +467,16 @@ app.post('/api/runner/callback', (req, res) => {
     // Update submission status and score
     const submission = database.submissions.find(s => s.id === parseInt(submissionId));
     if (submission) {
-      submission.status = status || 'failed';
+      // Map runner status to submission status
+      // 'completed' from runner means tests ran successfully (even if some failed)
+      // 'failed' from runner means execution error
+      if (status === 'completed') {
+        submission.status = 'completed';
+      } else if (status === 'failed') {
+        submission.status = 'failed';
+      } else {
+        submission.status = status || 'failed';
+      }
       submission.score = score || 0;
       console.log(`[CALLBACK] Updated submission ${submissionId}: status=${submission.status}, score=${submission.score}`);
     } else {

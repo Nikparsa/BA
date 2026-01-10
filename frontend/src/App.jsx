@@ -38,17 +38,47 @@ function getSubmissionStatusInfo(submission) {
     return { label: 'Unbekannt', className: 'status-default' };
   }
 
-  if (submission.status === 'queued') {
+  if (submission.status === 'queued' || submission.status === 'processing') {
     return { label: 'In Bewertung', className: 'status-queued' };
   }
 
+  // If status is 'completed' and score exists, show grade
+  if (submission.status === 'completed') {
+    const gradeInfo = getGradeInfo(submission.score);
+    if (gradeInfo) {
+      return gradeInfo;
+    }
+    // If completed but no score yet, show "In Bewertung"
+    return { label: 'In Bewertung', className: 'status-queued' };
+  }
+
+  // For failed status, check if we have a score (partial completion)
+  if (submission.status === 'failed') {
+    const gradeInfo = getGradeInfo(submission.score);
+    if (gradeInfo) {
+      return gradeInfo;
+    }
+    return { label: 'Fehlgeschlagen', className: 'status-grade-insufficient' };
+  }
+
+  // Check for grade info for any other status
   const gradeInfo = getGradeInfo(submission.score);
   if (gradeInfo) {
     return gradeInfo;
   }
 
+  // Default: show status as-is
   if (submission.status) {
-    return { label: submission.status, className: 'status-default' };
+    const statusLabels = {
+      'queued': 'In Bewertung',
+      'processing': 'In Bewertung',
+      'completed': 'Abgeschlossen',
+      'failed': 'Fehlgeschlagen'
+    };
+    return { 
+      label: statusLabels[submission.status] || submission.status, 
+      className: 'status-default' 
+    };
   }
 
   return { label: 'Unbekannt', className: 'status-default' };
