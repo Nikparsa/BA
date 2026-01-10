@@ -123,7 +123,7 @@ sleep 3
 echo -e "${CYAN}Starting Runner on port $RUNNER_PORT...${NC}"
 cd runner
 source .venv/bin/activate
-nohup python run.py > ../logs/runner.log 2>&1 &
+BACKEND_URL=$BACKEND_URL PORT=$RUNNER_PORT nohup python run.py > ../logs/runner.log 2>&1 &
 RUNNER_PID=$!
 echo $RUNNER_PID > ../logs/runner.pid
 deactivate

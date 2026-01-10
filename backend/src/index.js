@@ -415,25 +415,41 @@ app.get('/api/submissions/:id', authRequired, (req, res) => {
 app.post('/api/runner/callback', (req, res) => {
   const { submissionId, status, score, totalTests, passedTests, feedback } = req.body;
   
-  // Update submission status
+  console.log(`Callback received for submission ${submissionId}: status=${status}, score=${score}`);
+  
+  // Update submission status and score
   const submission = database.submissions.find(s => s.id === submissionId);
   if (submission) {
     submission.status = status;
+    submission.score = score || 0;
+  } else {
+    console.error(`Submission ${submissionId} not found in database`);
   }
   
-  // Create result
-  const result = {
-    id: database.results.length + 1,
-    submissionId,
-    score: score || 0,
-    totalTests: totalTests || 0,
-    passedTests: passedTests || 0,
-    feedback: feedback || '',
-    createdAt: new Date().toISOString()
-  };
+  // Create or update result
+  let result = database.results.find(r => r.submissionId === submissionId);
+  if (result) {
+    // Update existing result
+    result.score = score || 0;
+    result.totalTests = totalTests || 0;
+    result.passedTests = passedTests || 0;
+    result.feedback = feedback || '';
+  } else {
+    // Create new result
+    result = {
+      id: database.results.length + 1,
+      submissionId,
+      score: score || 0,
+      totalTests: totalTests || 0,
+      passedTests: passedTests || 0,
+      feedback: feedback || '',
+      createdAt: new Date().toISOString()
+    };
+    database.results.push(result);
+  }
   
-  database.results.push(result);
   saveDatabase();
+  console.log(`Database updated for submission ${submissionId}`);
   
   res.json({ ok: true });
 });

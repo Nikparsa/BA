@@ -224,8 +224,7 @@ def run():
         print(f"DEBUG: Test result: {test_result}")  # Debug
 
         # Prepare callback data
-        cal
-        lback_data = {
+        callback_data = {
             'submissionId': submission_id,
             'status': 'completed' if test_result.get('success', False) else 'failed',
             'score': test_result.get('score', 0.0),
