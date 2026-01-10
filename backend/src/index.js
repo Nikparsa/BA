@@ -39,7 +39,11 @@ let database;
 if (fs.existsSync(dbPath)) {
   try {
     database = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-    console.log('Database loaded from file');
+    console.log(`Database loaded from file: ${dbPath}`);
+    console.log(`  - Users: ${database.users?.length || 0}`);
+    console.log(`  - Assignments: ${database.assignments?.length || 0}`);
+    console.log(`  - Submissions: ${database.submissions?.length || 0}`);
+    console.log(`  - Results: ${database.results?.length || 0}`);
   } catch (error) {
     console.error('Error loading database:', error);
     database = createDefaultDatabase();
@@ -47,6 +51,11 @@ if (fs.existsSync(dbPath)) {
 } else {
   database = createDefaultDatabase();
   saveDatabase();
+  console.log('Created new database with default data');
+  console.log(`  - Users: ${database.users?.length || 0}`);
+  console.log(`  - Assignments: ${database.assignments?.length || 0}`);
+  console.log(`  - Submissions: ${database.submissions?.length || 0}`);
+  console.log(`  - Results: ${database.results?.length || 0}`);
 }
 
 function ensureAssignmentMetadata() {
@@ -92,12 +101,17 @@ function saveDatabase() {
 // Auth middleware
 function authRequired(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'No token' });
+  if (!token) {
+    console.log(`[AUTH] No token provided for ${req.method} ${req.path}`);
+    return res.status(401).json({ error: 'No token' });
+  }
   
   try {
     req.user = jwt.verify(token, JWT_SECRET);
+    console.log(`[AUTH] User authenticated: ${req.user.email} (${req.user.role}) for ${req.method} ${req.path}`);
     next();
   } catch (error) {
+    console.log(`[AUTH] Invalid token for ${req.method} ${req.path}: ${error.message}`);
     res.status(401).json({ error: 'Invalid token' });
   }
 }
@@ -223,7 +237,9 @@ app.post('/api/auth/register', (req, res) => {
 
 // Assignment routes
 app.get('/api/assignments', authRequired, (req, res) => {
-  res.json(database.assignments);
+  console.log(`[ASSIGNMENTS] User ${req.user.email} (${req.user.role}) requesting assignments`);
+  console.log(`[ASSIGNMENTS] Returning ${database.assignments?.length || 0} assignments`);
+  res.json(database.assignments || []);
 });
 
 // Public route for runner (no auth required)
