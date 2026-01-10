@@ -454,6 +454,15 @@
       "filename": "1766158757317-fizzbuzz_17p.zip",
       "status": "failed",
       "createdAt": "2025-12-19T15:39:17.323Z"
+    },
+    {
+      "id": 48,
+      "userId": 5,
+      "assignmentId": 2,
+      "filename": "1768054427867-csv_25p.zip",
+      "status": "failed",
+      "createdAt": "2026-01-10T14:13:47.891Z",
+      "score": 0.25
     }
   ],
   "results": [
@@ -879,6 +888,15 @@
       "passedTests": 1,
       "feedback": "Failed tests:\n  • test_fizzbuzz.py::test_returns_number: E       AssertionError: assert 'wrong' == '1'\n  • test_fizzbuzz.py::test_returns_fizz: E       AssertionError: assert 'wrong' == 'Fizz'\n  • test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'",
       "createdAt": "2025-12-19T15:39:21.440Z"
+    },
+    {
+      "id": 48,
+      "submissionId": 48,
+      "score": 0.25,
+      "totalTests": 4,
+      "passedTests": 1,
+      "feedback": "Failed tests:\n  • test_csv_stats.py::test_calculate_median: E       AssertionError: assert 999 == 3.0\n  • test_csv_stats.py::test_calculate_std: C:\\FH\\semester_5\\ProjektArbeit\\BA\\tasks\\csv-stats\\tests\\test_csv_stats.py:34: AssertionError\n  • test_csv_stats.py::test_empty_data: E       AssertionError: assert 999 == 0",
+      "createdAt": "2026-01-10T14:13:56.232Z"
     }
   ]
 }

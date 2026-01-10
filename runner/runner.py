@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 PORT = int(os.getenv('PORT', 5001))
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:3000/api')
+print(f"DEBUG: Runner started with BACKEND_URL={BACKEND_URL}, PORT={PORT}")
 
 # Get absolute paths relative to this file
 RUNNER_DIR = os.path.dirname(os.path.abspath(__file__))

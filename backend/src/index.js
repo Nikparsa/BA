@@ -355,6 +355,7 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
   saveDatabase();
   
   // Send to runner
+  console.log(`Sending submission ${submission.id} to runner at ${RUNNER_URL}/run`);
   fetch(`${RUNNER_URL}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -363,7 +364,22 @@ app.post('/api/submissions', authRequired, upload.single('file'), (req, res) => 
       assignmentId: submission.assignmentId,
       filename: req.file.filename
     })
-  }).catch(err => console.error('Runner error:', err));
+  })
+  .then(response => {
+    if (!response.ok) {
+      console.error(`Runner responded with status ${response.status} for submission ${submission.id}`);
+    } else {
+      console.log(`Submission ${submission.id} successfully sent to runner`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log(`Runner response for submission ${submission.id}:`, data);
+  })
+  .catch(err => {
+    console.error(`Failed to send submission ${submission.id} to runner:`, err.message);
+    console.error(`Runner URL: ${RUNNER_URL}/run`);
+  });
   
   res.json({ 
     submissionId: submission.id,
