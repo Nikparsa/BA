@@ -2,20 +2,20 @@
 
 A **language-agnostic** educational platform for automated programming assignment grading with a focus on **easy extensibility**.
 
-## 🎯 Core Philosophy
+## Core Philosophy
 
 **Python is the example, extensibility is the goal.** The system uses Python as the working demonstration, but the architecture is designed to easily support any programming language with minimal changes.
 
-## ✨ Features
+## Features
 
-- ✅ **Multi-language Architecture** - Plugin-based system ready for easy extension
-- ✅ **Python Implementation** - Working example with pytest integration
-- ✅ **Student Dashboard** - Assignment submission and progress tracking
-- ✅ **Teacher Analytics** - Results monitoring and export functionality
-- ✅ **Real-time Testing** - Automated test execution with instant feedback
-- ✅ **Language Detection** - Automatic detection from submitted files
+- **Multi-language Architecture** - Plugin-based system ready for easy extension
+- **Python Implementation** - Working example with pytest integration
+- **Student Dashboard** - Assignment submission and progress tracking
+- **Teacher Analytics** - Results monitoring and export functionality
+- **Real-time Testing** - Automated test execution with instant feedback
+- **Language Detection** - Automatic detection from submitted files
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -28,7 +28,7 @@ A **language-agnostic** educational platform for automated programming assignmen
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -65,7 +65,7 @@ cd frontend && npm run dev
 - **Backend API**: http://localhost:3000/api
 - **Runner API**: http://localhost:5001/health
 
-## 📋 Sample Assignments
+## Sample Assignments
 
 Three representative programming tasks are included:
 
@@ -73,7 +73,7 @@ Three representative programming tasks are included:
 2. **CSV Statistics** - Data processing and analysis  
 3. **Vector2D Class** - Object-oriented programming
 
-## 🔧 Adding New Languages
+## Adding New Languages
 
 The system is designed for **easy language extension**:
 
@@ -116,7 +116,7 @@ const LANGUAGE_CONFIGS = {
 
 **That's it!** The new language is now supported.
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: React + Vite + Tailwind CSS
 - **Backend**: Node.js + Express + SQLite/JSON
@@ -124,19 +124,19 @@ const LANGUAGE_CONFIGS = {
 - **Database**: JSON-based (development) / SQLite (production)
 - **Deployment**: Docker + Docker Compose
 
-## 📊 Language Support Status
+## Language Support Status
 
 | Language | Status | Test Framework | Ready for Extension |
 |----------|--------|----------------|-------------------|
-| Python | ✅ Implemented | pytest | Yes |
-| Java | 🔄 Ready | JUnit | Add plugin |
-| JavaScript | 🔄 Ready | Jest | Add plugin |
-| Kotlin | 🔄 Ready | Kotest | Add plugin |
-| Swift | 🔄 Ready | XCTest | Add plugin |
-| Go | 🔄 Ready | testing | Add plugin |
-| Ruby | 🔄 Ready | RSpec | Add plugin |
+| Python | Implemented | pytest | Yes |
+| Java | Ready | JUnit | Add plugin |
+| JavaScript | Ready | Jest | Add plugin |
+| Kotlin | Ready | Kotest | Add plugin |
+| Swift | Ready | XCTest | Add plugin |
+| Go | Ready | testing | Add plugin |
+| Ruby | Ready | RSpec | Add plugin |
 
-## 🔒 Security Features
+## Security Features
 
 - JWT-based authentication
 - Container sandbox isolation
@@ -144,7 +144,7 @@ const LANGUAGE_CONFIGS = {
 - No network access in test environment
 - Resource limits (CPU/memory/timeout)
 
-## 📈 API Endpoints
+## API Endpoints
 
 ### Backend (`/api`)
 - `GET /api` - API status
@@ -166,7 +166,7 @@ const LANGUAGE_CONFIGS = {
 - `GET /languages` - Runner capabilities
 - `POST /run` - Execute tests
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 # Full containerized deployment
@@ -175,7 +175,7 @@ docker compose up --build
 # Access at http://localhost:3000
 ```
 
-## 🚀 Production Deployment
+## Production Deployment
 
 ### Server Requirements
 - Node.js 18+
@@ -363,7 +363,7 @@ server {
 - **Frontend API errors**: Ensure VITE_API_BASE_URL is set correctly before building
 - **Permission errors**: Check file permissions for data directories
 
-## 🧪 Testing the System
+## Testing the System
 
 1. **Register** a new account
 2. **Login** with your credentials
@@ -371,14 +371,14 @@ server {
 4. **Submit Code** - Upload a ZIP file with your solution
 5. **View Results** - See test results and feedback
 
-## 📚 Research Context
+## Research Context
 
 This project is developed as part of a Bachelor's thesis research project focusing on:
 - Impact of automated feedback on learning outcomes
 - Multi-language programming education
 - Best practices for automated code assessment
 
-## 🤝 Contributing
+## Contributing
 
 This is a research prototype. The codebase is designed to be:
 - **Clean** - Minimal, focused implementation
