@@ -41,6 +41,72 @@
       "email": "student@test-fh2",
       "password": "123456",
       "role": "student"
+    },
+    {
+      "id": 8,
+      "email": "tina@fh.com",
+      "password": "123456",
+      "role": "student"
+    },
+    {
+      "id": 9,
+      "email": "sara3.fh.com",
+      "password": "123456",
+      "role": "student"
+    },
+    {
+      "id": 10,
+      "email": "student@fh-edu.com",
+      "password": "12345",
+      "role": "student"
+    },
+    {
+      "id": 11,
+      "email": "teacher@fh-te.com",
+      "password": "12345",
+      "role": "teacher"
+    },
+    {
+      "id": 12,
+      "email": "teacher@fh-test.com",
+      "password": "12345",
+      "role": "teacher"
+    },
+    {
+      "id": 13,
+      "email": "teacher@fh_test.com",
+      "password": "123456",
+      "role": "teacher"
+    },
+    {
+      "id": 14,
+      "email": "newteacher@fh.com",
+      "password": "123456",
+      "role": "teacher"
+    },
+    {
+      "id": 15,
+      "email": "newstudent@fh.com",
+      "password": "123456",
+      "role": "student"
+    },
+    {
+      "id": 16,
+      "email": "nikparsa@fh.com",
+      "password": "12345",
+      "role": "teacher"
+    },
+    {
+      "id": 17,
+      "email": "nikparsa@fh-demo.com",
+      "password": "123456",
+      "role": "teacher"
+    },
+    {
+      "id": 18,
+      "email": "student@fh-demo.com",
+      "password": "123456",
+      "role": "student"
     }
   ],
   "assignments": [
@@ -82,6 +148,63 @@
         "Ensure the class uses standard Python dunder methods so the tests can compare vectors directly."
       ],
       "origin": "builtin"
+    },
+    {
+      "id": 4,
+      "title": "Updated Demo Task",
+      "slug": "demo",
+      "description": "Updated description for thesis demo",
+      "details": [
+        "Submit your solution as zip"
+      ],
+      "origin": "custom",
+      "createdBy": 2,
+      "createdAt": "2026-05-28T16:57:35.666Z"
+    },
+    {
+      "id": 5,
+      "title": "even-number-check",
+      "slug": "even-number-check",
+      "description": "",
+      "details": [
+        "The program should take an integer as input.",
+        "Return True if the number is even.",
+        "Return False if the number is odd.",
+        "Handle positive and negative numbers."
+      ],
+      "origin": "custom",
+      "createdBy": 2,
+      "createdAt": "2026-06-21T13:34:50.843Z"
+    },
+    {
+      "id": 6,
+      "title": "calculate-average",
+      "slug": "calculate-average",
+      "description": "Write a program that calculates the average score of a student from a list of grades.",
+      "details": [
+        "The program should take a list of numbers as input.",
+        "Calculate and return the average value.",
+        "The result should be a floating-point number.",
+        "Handle empty lists properly."
+      ],
+      "origin": "custom",
+      "createdBy": 2,
+      "createdAt": "2026-06-21T13:39:36.062Z"
+    },
+    {
+      "id": 7,
+      "title": "reverse-string",
+      "slug": "reverse-string",
+      "description": "Write a program that reverses a given string.",
+      "details": [
+        "The program should take a string as input.",
+        "Reverse the order of characters.",
+        "Return the reversed string.",
+        "Handle empty strings properly."
+      ],
+      "origin": "custom",
+      "createdBy": 2,
+      "createdAt": "2026-06-21T13:45:08.905Z"
     }
   ],
   "submissions": [
@@ -505,6 +628,87 @@
       "status": "completed",
       "createdAt": "2026-01-10T21:28:48.288Z",
       "score": 1
+    },
+    {
+      "id": 53,
+      "userId": 8,
+      "assignmentId": 1,
+      "filename": "1768085694455-fizzbuzz_67p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T22:54:54.465Z",
+      "score": 0.6666666666666666
+    },
+    {
+      "id": 54,
+      "userId": 8,
+      "assignmentId": 2,
+      "filename": "1768085715613-csv_75p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T22:55:15.616Z",
+      "score": 0.75
+    },
+    {
+      "id": 55,
+      "userId": 8,
+      "assignmentId": 3,
+      "filename": "1768085743036-vector_80p.zip",
+      "status": "completed",
+      "createdAt": "2026-01-10T22:55:43.047Z",
+      "score": 0.8
+    },
+    {
+      "id": 56,
+      "userId": 10,
+      "assignmentId": 1,
+      "filename": "1779964401680-fizzbuzz_67p.zip",
+      "status": "completed",
+      "createdAt": "2026-05-28T10:33:21.691Z",
+      "score": 0.6666666666666666
+    },
+    {
+      "id": 57,
+      "userId": 10,
+      "assignmentId": 3,
+      "filename": "1779965258080-vector_80p.zip",
+      "status": "completed",
+      "createdAt": "2026-05-28T10:47:38.083Z",
+      "score": 0.8
+    },
+    {
+      "id": 58,
+      "userId": 1,
+      "assignmentId": null,
+      "filename": "1779982317320-csv_50p.zip",
+      "status": "failed",
+      "createdAt": "2026-05-28T15:31:57.328Z",
+      "score": 0
+    },
+    {
+      "id": 59,
+      "userId": 10,
+      "assignmentId": 1,
+      "filename": "1779982891501-fizzbuzz_33p.zip",
+      "status": "completed",
+      "createdAt": "2026-05-28T15:41:31.503Z",
+      "score": 0.3333333333333333
+    },
+    {
+      "id": 60,
+      "userId": 18,
+      "assignmentId": 3,
+      "filename": "1780591696087-vector_3.zip",
+      "status": "completed",
+      "createdAt": "2026-06-04T16:48:16.109Z",
+      "score": 0.4
+    },
+    {
+      "id": 61,
+      "userId": 1,
+      "assignmentId": 7,
+      "filename": "1782050769582-demo.zip",
+      "status": "failed",
+      "createdAt": "2026-06-21T14:06:09.604Z",
+      "score": 0
     }
   ],
   "results": [
@@ -975,6 +1179,87 @@
       "passedTests": 4,
       "feedback": "All 4 tests passed!",
       "createdAt": "2026-01-10T21:28:53.904Z"
+    },
+    {
+      "id": 53,
+      "submissionId": 53,
+      "score": 0.6666666666666666,
+      "totalTests": 6,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • tests/test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
+      "createdAt": "2026-01-10T22:54:59.832Z"
+    },
+    {
+      "id": 54,
+      "submissionId": 54,
+      "score": 0.75,
+      "totalTests": 4,
+      "passedTests": 3,
+      "feedback": "Failed tests:\n  • tests/test_csv_stats.py::test_empty_data: def test_empty_data():",
+      "createdAt": "2026-01-10T22:55:20.706Z"
+    },
+    {
+      "id": 55,
+      "submissionId": 55,
+      "score": 0.8,
+      "totalTests": 5,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • tests/test_vector2d.py::test_vector_dot_product: def test_vector_dot_product():",
+      "createdAt": "2026-01-10T22:55:48.690Z"
+    },
+    {
+      "id": 56,
+      "submissionId": 56,
+      "score": 0.6666666666666666,
+      "totalTests": 6,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'\n  • tests/test_fizzbuzz.py::test_handles_negative_multiples: E       AssertionError: assert 'wrong' == 'Fizz'",
+      "createdAt": "2026-05-28T10:33:27.132Z"
+    },
+    {
+      "id": 57,
+      "submissionId": 57,
+      "score": 0.8,
+      "totalTests": 5,
+      "passedTests": 4,
+      "feedback": "Failed tests:\n  • tests/test_vector2d.py::test_vector_dot_product: def test_vector_dot_product():",
+      "createdAt": "2026-05-28T10:47:46.822Z"
+    },
+    {
+      "id": 58,
+      "submissionId": 58,
+      "score": 0,
+      "totalTests": 0,
+      "passedTests": 0,
+      "feedback": "Assignment not found",
+      "createdAt": "2026-05-28T15:32:01.544Z"
+    },
+    {
+      "id": 59,
+      "submissionId": 59,
+      "score": 0.3333333333333333,
+      "totalTests": 6,
+      "passedTests": 2,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'\n  • tests/test_fizzbuzz.py::test_returns_fizzbuzz: E       AssertionError: assert 'wrong' == 'FizzBuzz'\n  • tests/test_fizzbuzz.py::test_handles_zero: E       AssertionError: assert 'wrong' == '0'",
+      "createdAt": "2026-05-28T15:41:37.141Z"
+    },
+    {
+      "id": 60,
+      "submissionId": 60,
+      "score": 0.4,
+      "totalTests": 5,
+      "passedTests": 2,
+      "feedback": "Failed tests:\n  • tests/test_vector2d.py::test_vector_magnitude: def test_vector_magnitude():\n  • tests/test_vector2d.py::test_vector_scalar_multiplication: def test_vector_scalar_multiplication():\n  • tests/test_vector2d.py::test_vector_dot_product: def test_vector_dot_product():",
+      "createdAt": "2026-06-04T16:48:24.860Z"
+    },
+    {
+      "id": 61,
+      "submissionId": 61,
+      "score": 0,
+      "totalTests": 0,
+      "passedTests": 0,
+      "feedback": "No test files found in C:\\Users\\pnnik\\AppData\\Local\\Temp\\run_61_cjxgd9e0\\tests",
+      "createdAt": "2026-06-21T14:06:13.954Z"
     }
   ]
 }

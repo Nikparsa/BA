@@ -18,6 +18,12 @@ const GRADE_BANDS = [
   { min: 0, label: 'Nicht genügend', className: 'status-grade-insufficient' }
 ];
 
+/** Strip backend upload prefix (Date.now() + '-') for display only. */
+function displayFilename(storedFilename) {
+  if (!storedFilename) return '';
+  return storedFilename.replace(/^\d+-/, '');
+}
+
 function getGradeInfo(score) {
   if (score === undefined || score === null) {
     return null;
@@ -106,6 +112,17 @@ function App() {
   const [savingAssignment, setSavingAssignment] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
+
+  const handleSelectAssignment = (assignment) => {
+    setStatusMessage(null);
+    setSelectedAssignment(assignment);
+  };
+
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+    const timer = setTimeout(() => setStatusMessage(null), 5000);
+    return () => clearTimeout(timer);
+  }, [statusMessage]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -239,7 +256,7 @@ function App() {
       // Reload submissions from backend to get the real data
       const submissionsResponse = await axios.get('/submissions').catch(() => ({ data: [] }));
       setSubmissions(submissionsResponse.data);
-      setStatusMessage({ type: 'success', text: 'Submission received. We will notify you once grading is complete.' });
+      setStatusMessage({ type: 'success', text: 'Submission is completed.' });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.error || 'Submission failed. Please try again.';
@@ -334,7 +351,7 @@ function App() {
         onLogout={logout}
         navItems={availableSections}
       >
-      {statusMessage && (
+      {statusMessage && activeSection === 'assignments' && (
         <MessageBanner type={statusMessage.type} onClose={() => setStatusMessage(null)}>
           {statusMessage.text}
         </MessageBanner>
@@ -344,7 +361,7 @@ function App() {
         <AssignmentsSection
           assignments={assignments}
           selectedAssignment={selectedAssignment}
-          onSelectAssignment={setSelectedAssignment}
+          onSelectAssignment={handleSelectAssignment}
           onSubmit={submitAssignment}
           loading={loading}
           user={user}
@@ -645,7 +662,7 @@ function AssignmentsSection({
     const result = await onSubmit(selectedAssignment.id, file);
     if (result.success) {
       setFile(null);
-      setLocalMessage({ type: 'success', text: 'Assignment submitted successfully.' });
+      setLocalMessage(null);
     } else {
       setLocalMessage({ type: 'error', text: result.error });
     }
@@ -792,7 +809,7 @@ function SubmissionsSection({ submissions, assignments }) {
                   <span style={{ color: '#999' }}>—</span>
                 )}
               </span>
-              <span>{submission.filename}</span>
+              <span>{displayFilename(submission.filename)}</span>
             </div>
           ))}
         </div>
@@ -864,7 +881,7 @@ function TeacherSection({ assignments, submissions }) {
                     <span style={{ color: '#999' }}>—</span>
                   )}
                 </span>
-                <span>{submission.filename}</span>
+                <span>{displayFilename(submission.filename)}</span>
               </div>
             ))}
           </div>
