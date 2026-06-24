@@ -457,6 +457,7 @@ app.get('/api/submissions', authRequired, (req, res) => {
         score: scoreValue, // undefined for processing, number for completed/failed
         totalTests: result?.totalTests,
         passedTests: result?.passedTests,
+        passedTestNames: result?.passedTestNames || [],
         feedback: result?.feedback,
         // Include user email for teachers
         userEmail: user?.email || 'Unknown'
@@ -483,7 +484,7 @@ app.get('/api/submissions/:id', authRequired, (req, res) => {
 // Runner callback
 app.post('/api/runner/callback', (req, res) => {
   try {
-    const { submissionId, status, score, totalTests, passedTests, feedback } = req.body;
+    const { submissionId, status, score, totalTests, passedTests, passedTestNames, feedback } = req.body;
     
     console.log(`[CALLBACK] ===== RECEIVED CALLBACK =====`);
     console.log(`[CALLBACK] Full request body:`, JSON.stringify(req.body, null, 2));
@@ -540,12 +541,14 @@ app.post('/api/runner/callback', (req, res) => {
     const finalTotalTests = totalTests !== undefined && totalTests !== null ? totalTests : 0;
     const finalPassedTests = passedTests !== undefined && passedTests !== null ? passedTests : 0;
     const finalFeedback = feedback || '';
+    const finalPassedTestNames = Array.isArray(passedTestNames) ? passedTestNames : [];
     
     if (result) {
       // Update existing result - always update, even if values are 0
       result.score = finalScore;
       result.totalTests = finalTotalTests;
       result.passedTests = finalPassedTests;
+      result.passedTestNames = finalPassedTestNames;
       result.feedback = finalFeedback;
       console.log(`[CALLBACK] Updated existing result for submission ${submissionId}: score=${result.score}, status=${status}`);
     } else {
@@ -556,6 +559,7 @@ app.post('/api/runner/callback', (req, res) => {
         score: finalScore,
         totalTests: finalTotalTests,
         passedTests: finalPassedTests,
+        passedTestNames: finalPassedTestNames,
         feedback: finalFeedback,
         createdAt: new Date().toISOString()
       };

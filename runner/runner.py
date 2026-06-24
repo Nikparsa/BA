@@ -36,6 +36,7 @@ def run_pytest(workdir, test_dir):
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
+            'passed_test_names': [],
             'score': 0.0,
             'feedback': f'Test directory not found: {test_dir}',
             'pytest_executed': False  # Pytest won't execute
@@ -48,6 +49,7 @@ def run_pytest(workdir, test_dir):
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
+            'passed_test_names': [],
             'score': 0.0,
             'feedback': f'No test files found in {test_dir}',
             'pytest_executed': False  # Pytest won't execute (no test files)
@@ -83,6 +85,7 @@ def run_pytest(workdir, test_dir):
         total_tests = 0
         passed_tests = 0
         failed_tests = 0
+        passed_test_names = []
         feedback = ""
         pytest_executed = True  # pytest was executed (even if with errors)
         
@@ -101,6 +104,11 @@ def run_pytest(workdir, test_dir):
                     total_tests = len(tests_list)
                     passed_tests = len([t for t in tests_list if t.get('outcome') == 'passed'])
                     failed_tests = len([t for t in tests_list if t.get('outcome') == 'failed'])
+                    passed_test_names = [
+                        t.get('nodeid', 'Unknown test')
+                        for t in tests_list
+                        if t.get('outcome') == 'passed'
+                    ]
                     skipped_tests = len([t for t in tests_list if t.get('outcome') == 'skipped'])
                     print(f"DEBUG: COUNTED FROM TESTS ARRAY: total={total_tests}, passed={passed_tests}, failed={failed_tests}, skipped={skipped_tests}")
                     
@@ -159,19 +167,29 @@ def run_pytest(workdir, test_dir):
                         test_outcomes[outcome] = test_outcomes.get(outcome, 0) + 1
                     print(f"DEBUG: Test outcomes breakdown: {test_outcomes}")
                 
-                # Generate feedback from failed tests
+                # Generate feedback from passed and failed tests
                 tests = report.get('tests', [])
+                passed_tests_list = [t for t in tests if t.get('outcome') == 'passed']
                 failed_tests_list = [t for t in tests if t.get('outcome') == 'failed']
                 
+                feedback_parts = []
+                if passed_tests_list:
+                    feedback_parts.append("Passed tests:")
+                    for test in passed_tests_list:
+                        nodeid = test.get('nodeid', 'Unknown test')
+                        feedback_parts.append(f"  • {nodeid}")
                 if failed_tests_list:
-                    feedback_parts = ["Failed tests:"]
-                    for test in failed_tests_list[:3]:  # Limit to first 3 failures
+                    feedback_parts.append("Failed tests:")
+                    for test in failed_tests_list[:5]:
                         nodeid = test.get('nodeid', 'Unknown test')
                         longrepr = test.get('call', {}).get('longrepr', '')
                         if longrepr:
                             lines = longrepr.split('\n')
                             error_line = next((line for line in lines if 'AssertionError' in line), lines[0] if lines else '')
                             feedback_parts.append(f"  • {nodeid}: {error_line}")
+                        else:
+                            feedback_parts.append(f"  • {nodeid}")
+                if feedback_parts:
                     feedback = '\n'.join(feedback_parts)
                 elif total_tests > 0:
                     feedback = f"All {passed_tests} tests passed!"
@@ -213,6 +231,7 @@ def run_pytest(workdir, test_dir):
             'total_tests': total_tests,
             'passed_tests': passed_tests,
             'failed_tests': failed_tests,
+            'passed_test_names': passed_test_names,
             'score': score,
             'feedback': feedback,
             'pytest_executed': pytest_executed  # Track if pytest was actually executed
@@ -225,6 +244,7 @@ def run_pytest(workdir, test_dir):
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
+            'passed_test_names': [],
             'score': 0.0,
             'feedback': 'Test execution timed out after 60 seconds',
             'pytest_executed': True  # Pytest was executed but timed out
@@ -236,6 +256,7 @@ def run_pytest(workdir, test_dir):
             'total_tests': 0,
             'passed_tests': 0,
             'failed_tests': 0,
+            'passed_test_names': [],
             'score': 0.0,
             'feedback': f'Test execution failed: {str(e)}',
             'pytest_executed': False  # Pytest didn't execute
@@ -395,6 +416,7 @@ def run():
             'score': float(score_value),  # Ensure it's a float
             'totalTests': int(total_tests_value),
             'passedTests': int(passed_tests_value),
+            'passedTestNames': test_result.get('passed_test_names', []),
             'feedback': test_result.get('feedback', ''),
             'language': 'python'
         }

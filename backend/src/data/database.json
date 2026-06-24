@@ -107,6 +107,36 @@
       "email": "student@fh-demo.com",
       "password": "123456",
       "role": "student"
+    },
+    {
+      "id": 19,
+      "email": "teacher24@gmail.com",
+      "password": "12345",
+      "role": "teacher"
+    },
+    {
+      "id": 20,
+      "email": "stu@gmail.com",
+      "password": "12345",
+      "role": "student"
+    },
+    {
+      "id": 21,
+      "email": "teacher@we.con",
+      "password": "1234",
+      "role": "teacher"
+    },
+    {
+      "id": 22,
+      "email": "teacher@fh.at",
+      "password": "123456",
+      "role": "teacher"
+    },
+    {
+      "id": 23,
+      "email": "student@fh.at",
+      "password": "123456",
+      "role": "student"
     }
   ],
   "assignments": [
@@ -151,60 +181,13 @@
     },
     {
       "id": 4,
-      "title": "Updated Demo Task",
+      "title": "Demo",
       "slug": "demo",
-      "description": "Updated description for thesis demo",
-      "details": [
-        "Submit your solution as zip"
-      ],
+      "description": "this is just demo.",
+      "details": [],
       "origin": "custom",
-      "createdBy": 2,
-      "createdAt": "2026-05-28T16:57:35.666Z"
-    },
-    {
-      "id": 5,
-      "title": "even-number-check",
-      "slug": "even-number-check",
-      "description": "",
-      "details": [
-        "The program should take an integer as input.",
-        "Return True if the number is even.",
-        "Return False if the number is odd.",
-        "Handle positive and negative numbers."
-      ],
-      "origin": "custom",
-      "createdBy": 2,
-      "createdAt": "2026-06-21T13:34:50.843Z"
-    },
-    {
-      "id": 6,
-      "title": "calculate-average",
-      "slug": "calculate-average",
-      "description": "Write a program that calculates the average score of a student from a list of grades.",
-      "details": [
-        "The program should take a list of numbers as input.",
-        "Calculate and return the average value.",
-        "The result should be a floating-point number.",
-        "Handle empty lists properly."
-      ],
-      "origin": "custom",
-      "createdBy": 2,
-      "createdAt": "2026-06-21T13:39:36.062Z"
-    },
-    {
-      "id": 7,
-      "title": "reverse-string",
-      "slug": "reverse-string",
-      "description": "Write a program that reverses a given string.",
-      "details": [
-        "The program should take a string as input.",
-        "Reverse the order of characters.",
-        "Return the reversed string.",
-        "Handle empty strings properly."
-      ],
-      "origin": "custom",
-      "createdBy": 2,
-      "createdAt": "2026-06-21T13:45:08.905Z"
+      "createdBy": 22,
+      "createdAt": "2026-06-24T19:51:38.222Z"
     }
   ],
   "submissions": [
@@ -709,6 +692,60 @@
       "status": "failed",
       "createdAt": "2026-06-21T14:06:09.604Z",
       "score": 0
+    },
+    {
+      "id": 62,
+      "userId": 20,
+      "assignmentId": 3,
+      "filename": "1782328321339-csv_3.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:12:01.345Z",
+      "score": 0
+    },
+    {
+      "id": 63,
+      "userId": 20,
+      "assignmentId": 1,
+      "filename": "1782328685445-fizzbuzz_1.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:18:05.451Z",
+      "score": 0
+    },
+    {
+      "id": 64,
+      "userId": 20,
+      "assignmentId": 1,
+      "filename": "1782328711118-fizzbuzz_6.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:18:31.122Z",
+      "score": 1
+    },
+    {
+      "id": 65,
+      "userId": 20,
+      "assignmentId": 2,
+      "filename": "1782328733708-csv_3.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:18:53.711Z",
+      "score": 0.5
+    },
+    {
+      "id": 66,
+      "userId": 23,
+      "assignmentId": 3,
+      "filename": "1782331000267-vector_3.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:56:40.270Z",
+      "score": 0.4
+    },
+    {
+      "id": 67,
+      "userId": 23,
+      "assignmentId": 2,
+      "filename": "1782331120005-csv_2.zip",
+      "status": "completed",
+      "createdAt": "2026-06-24T19:58:40.006Z",
+      "score": 0.25
     }
   ],
   "results": [
@@ -1260,6 +1297,60 @@
       "passedTests": 0,
       "feedback": "No test files found in C:\\Users\\pnnik\\AppData\\Local\\Temp\\run_61_cjxgd9e0\\tests",
       "createdAt": "2026-06-21T14:06:13.954Z"
+    },
+    {
+      "id": 62,
+      "submissionId": 62,
+      "score": 0,
+      "totalTests": 5,
+      "passedTests": 0,
+      "feedback": "Failed tests:\n  • tests/test_vector2d.py::test_vector_creation: def test_vector_creation():\n  • tests/test_vector2d.py::test_vector_addition: def test_vector_addition():\n  • tests/test_vector2d.py::test_vector_magnitude: def test_vector_magnitude():",
+      "createdAt": "2026-06-24T19:12:06.205Z"
+    },
+    {
+      "id": 63,
+      "submissionId": 63,
+      "score": 0,
+      "totalTests": 6,
+      "passedTests": 0,
+      "feedback": "Failed tests:\n  • tests/test_fizzbuzz.py::test_returns_number: E       AssertionError: assert 'wrong' == '1'\n  • tests/test_fizzbuzz.py::test_returns_fizz: E       AssertionError: assert 'wrong' == 'Fizz'\n  • tests/test_fizzbuzz.py::test_returns_buzz: E       AssertionError: assert 'wrong' == 'Buzz'",
+      "createdAt": "2026-06-24T19:18:10.333Z"
+    },
+    {
+      "id": 64,
+      "submissionId": 64,
+      "score": 1,
+      "totalTests": 6,
+      "passedTests": 6,
+      "feedback": "All 6 tests passed!",
+      "createdAt": "2026-06-24T19:18:35.919Z"
+    },
+    {
+      "id": 65,
+      "submissionId": 65,
+      "score": 0.5,
+      "totalTests": 4,
+      "passedTests": 2,
+      "feedback": "Failed tests:\n  • tests/test_csv_stats.py::test_calculate_std: tests\\test_csv_stats.py:34: AssertionError\n  • tests/test_csv_stats.py::test_empty_data: E       AssertionError: assert 999 == 0",
+      "createdAt": "2026-06-24T19:18:58.625Z"
+    },
+    {
+      "id": 66,
+      "submissionId": 66,
+      "score": 0.4,
+      "totalTests": 5,
+      "passedTests": 2,
+      "feedback": "Failed tests:\n  • tests/test_vector2d.py::test_vector_magnitude: def test_vector_magnitude():\n  • tests/test_vector2d.py::test_vector_scalar_multiplication: def test_vector_scalar_multiplication():\n  • tests/test_vector2d.py::test_vector_dot_product: def test_vector_dot_product():",
+      "createdAt": "2026-06-24T19:56:45.170Z"
+    },
+    {
+      "id": 67,
+      "submissionId": 67,
+      "score": 0.25,
+      "totalTests": 4,
+      "passedTests": 1,
+      "feedback": "Failed tests:\n  • tests/test_csv_stats.py::test_calculate_median: E       AssertionError: assert 999 == 3.0\n  • tests/test_csv_stats.py::test_calculate_std: tests\\test_csv_stats.py:34: AssertionError\n  • tests/test_csv_stats.py::test_empty_data: E       AssertionError: assert 999 == 0",
+      "createdAt": "2026-06-24T19:58:44.815Z"
     }
   ]
 }

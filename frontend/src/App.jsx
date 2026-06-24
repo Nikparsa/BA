@@ -11,17 +11,22 @@ const NAV_ITEMS = [
 ];
 
 const GRADE_BANDS = [
-  { min: 90, label: 'Sehr gut', className: 'status-grade-excellent' },
-  { min: 80, label: 'Gut', className: 'status-grade-good' },
-  { min: 65, label: 'Befriedigend', className: 'status-grade-satisfactory' },
-  { min: 50, label: 'Genügend', className: 'status-grade-sufficient' },
-  { min: 0, label: 'Nicht genügend', className: 'status-grade-insufficient' }
+  { min: 90, label: 'Excellent', className: 'status-grade-excellent' },
+  { min: 80, label: 'Good', className: 'status-grade-good' },
+  { min: 65, label: 'Satisfactory', className: 'status-grade-satisfactory' },
+  { min: 50, label: 'Sufficient', className: 'status-grade-sufficient' },
+  { min: 0, label: 'Insufficient', className: 'status-grade-insufficient' }
 ];
 
 /** Strip backend upload prefix (Date.now() + '-') for display only. */
 function displayFilename(storedFilename) {
   if (!storedFilename) return '';
   return storedFilename.replace(/^\d+-/, '');
+}
+
+function assignmentDetailsToText(details) {
+  if (Array.isArray(details)) return details.join('\n');
+  return details || '';
 }
 
 function getGradeInfo(score) {
@@ -41,11 +46,11 @@ function getGradeInfo(score) {
 
 function getSubmissionStatusInfo(submission) {
   if (!submission) {
-    return { label: 'Unbekannt', className: 'status-default' };
+    return { label: 'Unknown', className: 'status-default' };
   }
 
   if (submission.status === 'queued' || submission.status === 'processing') {
-    return { label: 'In Bewertung', className: 'status-queued' };
+    return { label: 'Grading', className: 'status-queued' };
   }
 
   // If status is 'completed' and score exists, show grade
@@ -54,12 +59,12 @@ function getSubmissionStatusInfo(submission) {
     if (gradeInfo) {
       return gradeInfo;
     }
-    // If completed but no score yet, show "In Bewertung"
-    return { label: 'In Bewertung', className: 'status-queued' };
+    // If completed but no score yet, show grading state
+    return { label: 'Grading', className: 'status-queued' };
   }
 
   // For failed status, check if we have a score (partial completion)
-  // IMPORTANT: Score 0 is valid and should show grade, not just "Fehlgeschlagen"
+  // IMPORTANT: Score 0 is valid and should show grade, not just "Failed"
   if (submission.status === 'failed') {
     // Check if score exists (can be 0, which is valid)
     if (submission.score !== undefined && submission.score !== null) {
@@ -68,8 +73,8 @@ function getSubmissionStatusInfo(submission) {
         return gradeInfo;
       }
     }
-    // Only show "Fehlgeschlagen" if no score at all
-    return { label: 'Fehlgeschlagen', className: 'status-grade-insufficient' };
+    // Only show "Failed" if no score at all
+    return { label: 'Failed', className: 'status-grade-insufficient' };
   }
 
   // Check for grade info for any other status
@@ -81,18 +86,105 @@ function getSubmissionStatusInfo(submission) {
   // Default: show status as-is
   if (submission.status) {
     const statusLabels = {
-      'queued': 'In Bewertung',
-      'processing': 'In Bewertung',
-      'completed': 'Abgeschlossen',
-      'failed': 'Fehlgeschlagen'
+      queued: 'Grading',
+      processing: 'Grading',
+      completed: 'Completed',
+      failed: 'Failed'
     };
-    return { 
-      label: statusLabels[submission.status] || submission.status, 
-      className: 'status-default' 
+    return {
+      label: statusLabels[submission.status] || submission.status,
+      className: 'status-default'
     };
   }
 
-  return { label: 'Unbekannt', className: 'status-default' };
+  return { label: 'Unknown', className: 'status-default' };
+}
+
+function canViewSubmissionResults(submission) {
+  if (!submission) return false;
+  if (submission.status === 'queued' || submission.status === 'processing') {
+    return false;
+  }
+  return Boolean(submission.feedback) || (submission.totalTests != null && submission.totalTests > 0);
+}
+
+function parseTestFeedback(submission) {
+  const feedback = submission.feedback || '';
+  const passedTests = submission.passedTests ?? 0;
+  const totalTests = submission.totalTests ?? 0;
+  const passed = [];
+  const failed = [];
+  let section = null;
+
+  for (const line of feedback.split('\n')) {
+    if (line.startsWith('Passed tests:')) {
+      section = 'passed';
+      continue;
+    }
+    if (line.startsWith('Failed tests:')) {
+      section = 'failed';
+      continue;
+    }
+    const bulletMatch = line.trim().match(/^•\s*(.+)$/);
+    if (!bulletMatch) continue;
+    if (section === 'passed') passed.push(bulletMatch[1]);
+    if (section === 'failed') failed.push(bulletMatch[1]);
+  }
+
+  if (failed.length === 0 && feedback.includes('Failed tests:')) {
+    section = 'failed';
+    for (const line of feedback.split('\n')) {
+      const bulletMatch = line.trim().match(/^•\s*(.+)$/);
+      if (bulletMatch) failed.push(bulletMatch[1]);
+    }
+  }
+
+  const summary = totalTests > 0
+    ? `${passedTests} of ${totalTests} tests passed`
+    : 'Test results';
+
+  return { passed, failed, passedTests, totalTests, summary, feedback };
+}
+
+function formatTestName(nodeid) {
+  const raw = String(nodeid).trim();
+  const afterPath = raw.includes('::') ? raw.split('::').pop() : raw;
+  return afterPath.split(':')[0].trim();
+}
+
+function getPassedTestNames(submission) {
+  if (Array.isArray(submission.passedTestNames) && submission.passedTestNames.length > 0) {
+    return submission.passedTestNames.map(formatTestName);
+  }
+
+  const { passed } = parseTestFeedback(submission);
+  if (passed.length > 0) {
+    return passed.map(formatTestName);
+  }
+
+  return [];
+}
+
+function buildTestFeedbackText(submission) {
+  const { feedback, passedTests, totalTests } = parseTestFeedback(submission);
+  const passedNames = getPassedTestNames(submission);
+  const lines = [];
+
+  if (passedNames.length > 0) {
+    lines.push('Passed tests:');
+    passedNames.forEach((name) => lines.push(`  • ${name}`));
+    return lines.join('\n');
+  }
+
+  if (passedTests > 0) {
+    return `Passed tests: ${passedTests} of ${totalTests}`;
+  }
+
+  if (/^All \d+ tests passed/.test(feedback)) {
+    return feedback;
+  }
+
+  return 'No tests passed for this submission.';
 }
 
 function App() {
@@ -110,6 +202,14 @@ function App() {
   });
   const [testFile, setTestFile] = useState(null);
   const [savingAssignment, setSavingAssignment] = useState(false);
+  const [showEditAssignment, setShowEditAssignment] = useState(false);
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
+  const [editAssignmentForm, setEditAssignmentForm] = useState({
+    title: '',
+    description: '',
+    details: ''
+  });
+  const [pendingDeleteAssignment, setPendingDeleteAssignment] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -330,6 +430,87 @@ function App() {
     }
   };
 
+  const openEditAssignmentModal = (assignment) => {
+    setEditingAssignmentId(assignment.id);
+    setEditAssignmentForm({
+      title: assignment.title || '',
+      description: assignment.description || '',
+      details: assignmentDetailsToText(assignment.details)
+    });
+    setShowEditAssignment(true);
+  };
+
+  const closeEditAssignmentModal = () => {
+    setShowEditAssignment(false);
+    setEditingAssignmentId(null);
+    setEditAssignmentForm({ title: '', description: '', details: '' });
+  };
+
+  const handleEditAssignmentFieldChange = (field, value) => {
+    setEditAssignmentForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateAssignment = async (event) => {
+    event.preventDefault();
+    if (!editingAssignmentId || !editAssignmentForm.title.trim()) {
+      setStatusMessage({ type: 'error', text: 'Title is required.' });
+      return;
+    }
+
+    setSavingAssignment(true);
+    setStatusMessage(null);
+    try {
+      const { data } = await axios.put(`/assignments/${editingAssignmentId}`, {
+        title: editAssignmentForm.title.trim(),
+        description: editAssignmentForm.description,
+        details: editAssignmentForm.details
+      });
+      await hydrateData();
+      setSelectedAssignment(data);
+      setStatusMessage({ type: 'success', text: 'Assignment updated successfully.' });
+      closeEditAssignmentModal();
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to update assignment.';
+      setStatusMessage({ type: 'error', text: message });
+    } finally {
+      setSavingAssignment(false);
+    }
+  };
+
+  const deleteAssignment = (assignmentId) => {
+    const assignment = assignments.find((item) => item.id === assignmentId);
+    if (!assignment) {
+      return;
+    }
+    setPendingDeleteAssignment(assignment);
+  };
+
+  const cancelDeleteAssignment = () => {
+    setPendingDeleteAssignment(null);
+  };
+
+  const confirmDeleteAssignment = async () => {
+    if (!pendingDeleteAssignment) return;
+
+    const assignmentId = pendingDeleteAssignment.id;
+    setLoading(true);
+    setStatusMessage(null);
+    try {
+      await axios.delete(`/assignments/${assignmentId}`);
+      if (selectedAssignment?.id === assignmentId) {
+        setSelectedAssignment(null);
+      }
+      setPendingDeleteAssignment(null);
+      await hydrateData();
+      setStatusMessage({ type: 'success', text: 'Assignment deleted successfully.' });
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to delete assignment.';
+      setStatusMessage({ type: 'error', text: message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   if (!user) {
     return (
@@ -366,6 +547,8 @@ function App() {
           loading={loading}
           user={user}
           onCreateAssignment={openCreateAssignmentModal}
+          onEditAssignment={openEditAssignmentModal}
+          onDeleteAssignment={deleteAssignment}
           submissions={submissions}
         />
       )}
@@ -390,6 +573,23 @@ function App() {
           onClose={closeCreateAssignmentModal}
           onSubmit={createAssignment}
           saving={savingAssignment}
+        />
+      )}
+      {showEditAssignment && (
+        <EditAssignmentModal
+          form={editAssignmentForm}
+          onChangeField={handleEditAssignmentFieldChange}
+          onClose={closeEditAssignmentModal}
+          onSubmit={updateAssignment}
+          saving={savingAssignment}
+        />
+      )}
+      {pendingDeleteAssignment && (
+        <ConfirmDeleteModal
+          title={pendingDeleteAssignment.title}
+          onClose={cancelDeleteAssignment}
+          onConfirm={confirmDeleteAssignment}
+          loading={loading}
         />
       )}
     </>
@@ -630,6 +830,8 @@ function AssignmentsSection({
   loading,
   user,
   onCreateAssignment,
+  onEditAssignment,
+  onDeleteAssignment,
   submissions
 }) {
   const [file, setFile] = useState(null);
@@ -668,11 +870,14 @@ function AssignmentsSection({
     }
   };
 
+  const isTeacher = user?.role === 'teacher';
+  const showDetailPanel = !isTeacher || selectedAssignment;
+
   return (
-    <div className={user?.role === 'teacher' ? '' : 'two-column'}>
+    <div className={showDetailPanel ? 'two-column' : ''}>
       <div className="card assignments-list">
-        <h2 style={{ margin: '0 0 1rem 0' }}>Assignments</h2>
-        {user?.role === 'teacher' && onCreateAssignment && (
+        <h2>Assignments</h2>
+        {isTeacher && onCreateAssignment && (
           <div style={{ marginBottom: '1.5rem' }}>
             <PrimaryButton onClick={onCreateAssignment}>
               + Create assignment
@@ -682,17 +887,14 @@ function AssignmentsSection({
         <div className="assignment-items">
           {assignments.map((assignment) => (
             <button
+              type="button"
               key={assignment.id}
               className={`assignment-item ${
                 selectedAssignment?.id === assignment.id ? 'active' : ''
               }`}
               onClick={() => onSelectAssignment(assignment)}
             >
-              <div>
-                <h3>{assignment.title}</h3>
-                <p>{assignment.description}</p>
-              </div>
-              <span className="badge badge-soft">View brief</span>
+              <h3>{assignment.title}</h3>
             </button>
           ))}
           {assignments.length === 0 && (
@@ -704,7 +906,7 @@ function AssignmentsSection({
         </div>
       </div>
 
-      {user?.role !== 'teacher' && (
+      {showDetailPanel && (
       <div className="card submission-panel">
         {selectedAssignment ? (
           <>
@@ -722,6 +924,22 @@ function AssignmentsSection({
                 </ul>
               </div>
             )}
+            {isTeacher && (
+              <div className="assignment-actions">
+                <SecondaryButton type="button" onClick={() => onEditAssignment(selectedAssignment)}>
+                  Edit assignment
+                </SecondaryButton>
+                <DangerButton
+                  type="button"
+                  onClick={() => onDeleteAssignment(selectedAssignment.id)}
+                  disabled={loading}
+                >
+                  Delete assignment
+                </DangerButton>
+              </div>
+            )}
+            {!isTeacher && (
+              <>
             <div className="submission-guidelines">
               <h3>Submission guidelines</h3>
               <ul>
@@ -733,7 +951,7 @@ function AssignmentsSection({
                 {submissionCount > 0 && (
                   <p style={{ marginTop: '0.75rem', color: submissionCount >= 2 ? '#dc2626' : '#64748b', fontWeight: submissionCount >= 2 ? 'bold' : 'normal' }}>
                     {submissionCount >= 2 
-                      ? '⚠️ Maximum submission limit reached (2/2). You cannot submit again for this assignment.'
+                      ? 'Maximum submission limit reached (2/2). You cannot submit again for this assignment.'
                       : `Submissions used: ${submissionCount}/2`
                     }
                   </p>
@@ -759,6 +977,8 @@ function AssignmentsSection({
                 {localMessage.text}
               </MessageBanner>
             )}
+              </>
+            )}
           </>
         ) : (
           <EmptyState
@@ -775,11 +995,12 @@ function AssignmentsSection({
 function SubmissionsSection({ submissions, assignments }) {
   const lookupTitle = (assignmentId) =>
     assignments.find((assignment) => assignment.id === assignmentId)?.title || 'Assignment';
+  const [resultsSubmission, setResultsSubmission] = useState(null);
 
   return (
     <div className="card">
       <h2>My submissions</h2>
-      <p>Monitor grading progress and revisit previous uploads.</p>
+      <p>Monitor grading progress and revisit previous uploads. Click a status to see test details.</p>
 
       {submissions.length === 0 ? (
         <EmptyState
@@ -799,7 +1020,7 @@ function SubmissionsSection({ submissions, assignments }) {
             <div key={submission.id} className="submission-table-row">
               <span>{lookupTitle(submission.assignmentId)}</span>
               <span>{new Date(submission.createdAt).toLocaleString()}</span>
-              <StatusPill submission={submission} />
+              <StatusPill submission={submission} onShowResults={setResultsSubmission} />
               <span>
                 {/* Only show score if status is completed or failed (not processing) */}
                 {(submission.status === 'completed' || submission.status === 'failed') && 
@@ -814,6 +1035,13 @@ function SubmissionsSection({ submissions, assignments }) {
           ))}
         </div>
       )}
+      {resultsSubmission && (
+        <SubmissionResultsModal
+          submission={resultsSubmission}
+          assignmentTitle={lookupTitle(resultsSubmission.assignmentId)}
+          onClose={() => setResultsSubmission(null)}
+        />
+      )}
     </div>
   );
 }
@@ -821,6 +1049,7 @@ function SubmissionsSection({ submissions, assignments }) {
 function TeacherSection({ assignments, submissions }) {
   const lookupTitle = (assignmentId) =>
     assignments.find((assignment) => assignment.id === assignmentId)?.title || 'Assignment';
+  const [resultsSubmission, setResultsSubmission] = useState(null);
   
   // Calculate unique students
   const uniqueStudents = new Set(submissions.map(s => s.userEmail || s.userId)).size;
@@ -871,7 +1100,7 @@ function TeacherSection({ assignments, submissions }) {
                 <span>{submission.userEmail || `User #${submission.userId}`}</span>
                 <span>{lookupTitle(submission.assignmentId)}</span>
                 <span>{new Date(submission.createdAt).toLocaleString()}</span>
-                <StatusPill submission={submission} />
+                <StatusPill submission={submission} onShowResults={setResultsSubmission} />
                 <span>
                   {/* Only show score if status is completed or failed (not processing) */}
                   {(submission.status === 'completed' || submission.status === 'failed') && 
@@ -887,14 +1116,21 @@ function TeacherSection({ assignments, submissions }) {
           </div>
         )}
       </section>
+      {resultsSubmission && (
+        <SubmissionResultsModal
+          submission={resultsSubmission}
+          assignmentTitle={lookupTitle(resultsSubmission.assignmentId)}
+          onClose={() => setResultsSubmission(null)}
+        />
+      )}
     </div>
   );
 }
 
-function Modal({ title, onClose, children }) {
+function Modal({ title, onClose, children, className = '' }) {
   return (
     <div className="modal-backdrop">
-      <div className="modal-card">
+      <div className={`modal-card ${className}`.trim()}>
         <header className="modal-header">
           <h3>{title}</h3>
           <button type="button" onClick={onClose} aria-label="Close modal">
@@ -979,9 +1215,124 @@ function CreateAssignmentModal({ form, onChangeField, onSelectFile, testFile, on
   );
 }
 
-function StatusPill({ submission }) {
+function EditAssignmentModal({ form, onChangeField, onSubmit, onClose, saving }) {
+  return (
+    <Modal title="Edit assignment" onClose={onClose}>
+      <form className="modal-form" onSubmit={onSubmit}>
+        <label>
+          Title
+          <input
+            type="text"
+            value={form.title}
+            onChange={(event) => onChangeField('title', event.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          Description
+          <input
+            type="text"
+            value={form.description}
+            onChange={(event) => onChangeField('description', event.target.value)}
+            placeholder="Short summary shown to students"
+          />
+        </label>
+
+        <label>
+          Details
+          <textarea
+            rows={4}
+            value={form.details}
+            onChange={(event) => onChangeField('details', event.target.value)}
+            placeholder="One requirement per line"
+          />
+        </label>
+        <small style={{ color: '#475569' }}>
+          Slug and test file cannot be changed after creation.
+        </small>
+
+        <div className="modal-actions">
+          <SecondaryButton type="button" onClick={onClose}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </PrimaryButton>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ConfirmDeleteModal({ title, onClose, onConfirm, loading }) {
+  return (
+    <Modal title="Are you sure?" onClose={onClose}>
+      <p className="confirm-delete-message">
+        You are about to delete <strong>{title}</strong>. This action cannot be undone.
+      </p>
+      <div className="modal-actions">
+        <SecondaryButton type="button" onClick={onClose} disabled={loading}>
+          Cancel
+        </SecondaryButton>
+        <DangerButton type="button" onClick={onConfirm} disabled={loading}>
+          {loading ? 'Deleting…' : 'Yes, delete'}
+        </DangerButton>
+      </div>
+    </Modal>
+  );
+}
+
+function StatusPill({ submission, onShowResults }) {
   const { label, className } = getSubmissionStatusInfo(submission);
+  const showResults = canViewSubmissionResults(submission) && onShowResults;
+
+  if (showResults) {
+    return (
+      <button
+        type="button"
+        className={`status-pill status-pill-button ${className}`}
+        onClick={() => onShowResults(submission)}
+        title="View test results"
+      >
+        {label}
+      </button>
+    );
+  }
+
   return <span className={`status-pill ${className}`}>{label}</span>;
+}
+
+function SubmissionResultsModal({ submission, assignmentTitle, onClose }) {
+  const { label, className } = getSubmissionStatusInfo(submission);
+  const scorePercent = submission.score != null ? Math.round(submission.score * 100) : null;
+  const testFeedbackText = buildTestFeedbackText(submission);
+
+  return (
+    <Modal
+      title={`Submission: ${assignmentTitle}`}
+      onClose={onClose}
+      className="submission-detail-modal"
+    >
+      <dl className="submission-detail-meta">
+        <dt>File</dt>
+        <dd>{displayFilename(submission.filename)}</dd>
+        <dt>Submitted</dt>
+        <dd>{new Date(submission.createdAt).toLocaleString()}</dd>
+        <dt>Status</dt>
+        <dd>
+          <span className={`status-pill ${className}`}>{label}</span>
+        </dd>
+        <dt>Score</dt>
+        <dd>{scorePercent != null ? `${scorePercent}%` : '—'}</dd>
+      </dl>
+
+      <section className="submission-detail-feedback">
+        <h4>Test feedback</h4>
+        <pre className="results-raw">{testFeedbackText}</pre>
+      </section>
+    </Modal>
+  );
 }
 
 function MessageBanner({ type = 'info', children, onClose }) {
@@ -1006,6 +1357,14 @@ function PrimaryButton({ children, ...props }) {
 function SecondaryButton({ children, ...props }) {
   return (
     <button className="btn secondary" {...props}>
+      {children}
+    </button>
+  );
+}
+
+function DangerButton({ children, ...props }) {
+  return (
+    <button className="btn danger" {...props}>
       {children}
     </button>
   );
